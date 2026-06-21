@@ -38,6 +38,9 @@ set(SOURCES
     ui/skTabBar.cpp
     ui/skSpinner.cpp
     ui/skBadge.cpp
+    ui/skToast.cpp
+    ui/skToggle.cpp
+    ui/skNumberInput.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})

@@ -29,3 +29,13 @@ struct skTheme {
 
 skTheme& skGetTheme();
 void     skSetTheme(const skTheme& t);
+
+inline SkColor skLerpColor(SkColor a, SkColor b, float t) {
+    if (t <= 0.f) return a;
+    if (t >= 1.f) return b;
+    return SkColorSetARGB(
+        (uint8_t)(SkColorGetA(a) + (SkColorGetA(b) - SkColorGetA(a)) * t),
+        (uint8_t)(SkColorGetR(a) + (SkColorGetR(b) - SkColorGetR(a)) * t),
+        (uint8_t)(SkColorGetG(a) + (SkColorGetG(b) - SkColorGetG(a)) * t),
+        (uint8_t)(SkColorGetB(a) + (SkColorGetB(b) - SkColorGetB(a)) * t));
+}

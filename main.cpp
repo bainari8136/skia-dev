@@ -16,6 +16,8 @@
 #include "ui/skTabBar.h"
 #include "ui/skSpinner.h"
 #include "ui/skBadge.h"
+#include "ui/skToggle.h"
+#include "ui/skNumberInput.h"
 #include "ui/skSizer.h"
 #include <vector>
 #include <memory>
@@ -38,7 +40,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     window->addWidget(badge);
     window->addWidget(subtitle);
 
-    // Dark-mode toggle
     auto darkChk = std::make_shared<skCheckBox>(600, 20, 200, 28, "Dark mode");
     darkChk->setTooltip("Switch between light and dark colour themes");
     darkChk->setOnChange([hwnd](bool dark) {
@@ -52,7 +53,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     window->addWidget(panel);
 
     // =====================================================================
-    // LEFT COLUMN  (Profile content — always visible)
+    // LEFT COLUMN — Profile
     // =====================================================================
     skSizer col(skDirection::Column, 12);
 
@@ -84,6 +85,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     radioGroup->select(rb1.get());
     col.add(rb1, 28); col.add(rb2, 28); col.add(rb3, 28);
 
+    auto prioLabel = std::make_shared<skLabel>(0,0,320,18,"Priority (1–10)", 12.f);
+    col.add(prioLabel, 18);
+    auto prioInput = std::make_shared<skNumberInput>(0,0,160,34, 1, 10, 5);
+    prioInput->setTooltip("Arrow keys also work when focused");
+    col.add(prioInput, 34);
+
     auto saveBtn   = std::make_shared<skButton>(0,0,110,38,"Save");
     auto cancelBtn = std::make_shared<skButton>(0,0,110,38,"Cancel");
     saveBtn->setTooltip("Save your changes");
@@ -92,7 +99,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
 
     col.layout(50, 102, 320);
 
-    // Cancel and spinner are manually placed beside Save
     cancelBtn->x = saveBtn->x + saveBtn->w + 12;
     cancelBtn->y = saveBtn->y;
 
@@ -100,15 +106,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         cancelBtn->x + cancelBtn->w + 12,
         cancelBtn->y + (cancelBtn->h - 28) / 2,
         28);
-    spinner->setTooltip("Processing...");
+    spinner->setTooltip("Saving...");
 
-    saveBtn->setOnClick([nameInput, hwnd, spinner]() {
-        spinner->start();
-        InvalidateRect(hwnd, nullptr, FALSE);
-        std::string msg = "Saved!\nName: " + (nameInput->text().empty() ? "(none)" : nameInput->text());
-        MessageBoxA(hwnd, msg.c_str(), "skWidgets", MB_OK);
-        spinner->stop();
-        InvalidateRect(hwnd, nullptr, FALSE);
+    saveBtn->setOnClick([nameInput, prioInput, window, spinner]() {
+        spinner->runFor(20); // ~2 seconds
+        std::string name = nameInput->text().empty() ? "anonymous" : nameInput->text();
+        window->showToast("Saved: " + name + "  (priority " + std::to_string(prioInput->value()) + ")");
     });
     cancelBtn->setOnClick([hwnd]() { DestroyWindow(hwnd); });
 
@@ -117,26 +120,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     window->addWidget(spinner);
 
     // =====================================================================
-    // RIGHT COLUMN  (tab-switched: Settings | Files)
+    // RIGHT COLUMN — tab-switched (Settings | Files)
     // =====================================================================
     skSizer right(skDirection::Column, 12);
 
-    // Tab bar switches between Settings and Files content
     auto tabBar = std::make_shared<skTabBar>(0,0,280,34);
     tabBar->addTab("Settings");
     tabBar->addTab("Files");
     right.add(tabBar, 34);
 
-    // -- Settings content --
-    auto chk1 = std::make_shared<skCheckBox>(0,0,280,28,"Enable notifications"); chk1->setChecked(true);
-    auto chk2 = std::make_shared<skCheckBox>(0,0,280,28,"Start on login");
+    // Settings content
+    auto tog1 = std::make_shared<skToggle>(0,0,280,28,"Enable notifications"); tog1->setChecked(true);
+    auto tog2 = std::make_shared<skToggle>(0,0,280,28,"Start on login");
     auto chk3 = std::make_shared<skCheckBox>(0,0,280,28,"Send usage statistics");
-    chk1->setTooltip("Show desktop and email notifications");
-    right.add(chk1, 28); right.add(chk2, 28); right.add(chk3, 28);
+    tog1->setTooltip("Show desktop and email notifications");
+    right.add(tog1, 28); right.add(tog2, 28); right.add(chk3, 28);
 
     auto themeLabel = std::make_shared<skLabel>(0,0,280,18,"Accent colour", 12.f);
     right.add(themeLabel, 18);
-
     auto dropdown = std::make_shared<skDropdown>(0, 0, 280, 36);
     dropdown->addOption("Blue   (default)");
     dropdown->addOption("Purple");
@@ -144,7 +145,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     dropdown->addOption("Orange");
     right.add(dropdown, 36);
 
-    // -- Files content (hidden initially) --
+    // Files content (hidden by default)
     auto sep       = std::make_shared<skSeparator>(0, 0, 280, 1);
     auto fileLabel = std::make_shared<skLabel>(0, 0, 280, 18, "Recent files", 12.f);
     auto listBox   = std::make_shared<skListBox>(0, 0, 280, 150);
@@ -161,29 +162,27 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     right.add(listBox,   150);
 
     right.layout(430, 102, 280);
-    addAll(window, right);           // adds widgets including dropdown
-    window->addOverlay(dropdown);    // dropdown also as overlay for on-top rendering
+    addAll(window, right);
+    window->addOverlay(dropdown);
 
-    // Files group starts hidden
-    std::vector<std::shared_ptr<skWidget>> settingsWidgets = { chk1, chk2, chk3, themeLabel, dropdown };
-    std::vector<std::shared_ptr<skWidget>> filesWidgets    = { sep, fileLabel, listBox };
-    for (auto& w : filesWidgets) w->setVisible(false);
+    std::vector<std::shared_ptr<skWidget>> settingsW = { tog1, tog2, chk3, themeLabel, dropdown };
+    std::vector<std::shared_ptr<skWidget>> filesW    = { sep, fileLabel, listBox };
+    for (auto& fw : filesW) fw->setVisible(false);
 
     tabBar->setOnChange([=](int idx, const std::string&) {
-        bool showSettings = (idx == 0);
-        for (auto& w : settingsWidgets) w->setVisible(showSettings);
-        for (auto& w : filesWidgets)    w->setVisible(!showSettings);
+        bool onSettings = (idx == 0);
+        for (auto& w : settingsW) w->setVisible(onSettings);
+        for (auto& fw : filesW)   fw->setVisible(!onSettings);
         InvalidateRect(hwnd, nullptr, FALSE);
     });
 
-    // Accent colour switcher
     dropdown->setOnChange([hwnd](int idx, const std::string&) {
         auto th = skGetTheme();
         switch (idx) {
             case 1: th.accent=SkColorSetRGB(130, 80,220); th.accentHover=SkColorSetRGB(155,110,240); th.accentPress=SkColorSetRGB(100, 50,190); break;
             case 2: th.accent=SkColorSetRGB( 20,160,150); th.accentHover=SkColorSetRGB( 40,185,175); th.accentPress=SkColorSetRGB( 10,130,120); break;
             case 3: th.accent=SkColorSetRGB(220,120, 20); th.accentHover=SkColorSetRGB(240,145, 50); th.accentPress=SkColorSetRGB(190, 95, 10); break;
-            default: th.accent=SkColorSetRGB(55,120,220); th.accentHover=SkColorSetRGB(80,150,255);  th.accentPress=SkColorSetRGB(20, 80,180);  break;
+            default: th.accent=SkColorSetRGB( 55,120,220); th.accentHover=SkColorSetRGB( 80,150,255); th.accentPress=SkColorSetRGB(20, 80,180); break;
         }
         skSetTheme(th);
         InvalidateRect(hwnd, nullptr, FALSE);

@@ -4,6 +4,7 @@
 #include <include/core/SkPaint.h>
 #include <include/core/SkRRect.h>
 #include <include/core/SkFont.h>
+#include <algorithm>
 
 skButton::skButton(int bx, int by, int bw, int bh, std::string label)
     : skWidget(bx, by, bw, bh), m_label(std::move(label)) {}
@@ -16,8 +17,7 @@ void skButton::Paint(SkCanvas* canvas) {
     fill.setAntiAlias(true);
     fill.setStyle(SkPaint::kFill_Style);
     fill.setColor(m_pressed ? th.accentPress
-                : m_hovered ? th.accentHover
-                            : th.accent);
+                            : skLerpColor(th.accent, th.accentHover, m_hoverAnim));
 
     SkRRect rr;
     rr.setRectXY(SkRect::MakeXYWH((float)x, (float)y, (float)w, (float)h), 6.f, 6.f);
@@ -45,6 +45,12 @@ void skButton::Paint(SkCanvas* canvas) {
     canvas->drawString(m_label.c_str(), tx, ty, font, text);
 
     canvas->restore();
+}
+
+void skButton::onTick() {
+    float target = m_hovered ? 1.f : 0.f;
+    if (m_hoverAnim < target) m_hoverAnim = std::min(1.f, m_hoverAnim + 0.25f);
+    else                      m_hoverAnim = std::max(0.f, m_hoverAnim - 0.25f);
 }
 
 void skButton::OnEvent(const skEvent& event) {

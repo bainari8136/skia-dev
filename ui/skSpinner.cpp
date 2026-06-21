@@ -7,7 +7,8 @@ skSpinner::skSpinner(int sx, int sy, int size)
 
 void skSpinner::onTick() {
     if (!m_running) return;
-    m_angle = fmodf(m_angle + 36.f, 360.f); // 36°/100ms = 1 rev/s
+    m_angle = fmodf(m_angle + 36.f, 360.f);
+    if (m_autoStopTicks > 0 && --m_autoStopTicks == 0) m_running = false;
 }
 
 void skSpinner::Paint(SkCanvas* canvas) {

@@ -1,6 +1,7 @@
 #include "platform/skWindow.h"
 #include "ui/skTheme.h"
 #include "ui/skTypeface.h"
+#include "ui/skToast.h"
 #include <include/core/SkFont.h>
 #include <include/core/SkPaint.h>
 #include <include/core/SkRRect.h>
@@ -74,10 +75,22 @@ void skWindow::setFocus(std::shared_ptr<skWidget> w) {
 // Rendering
 // ---------------------------------------------------------------------------
 
+void skWindow::repositionToast() {
+    if (!m_toast) return;
+    m_toast->x = (m_width  - m_toast->w) / 2;
+    m_toast->y =  m_height - m_toast->h - 20;
+}
+
 void skWindow::onSize(int w, int h) {
     m_width  = w;
     m_height = h;
     m_ctx.resize(w, h);
+    repositionToast();
+    InvalidateRect(m_hwnd, nullptr, FALSE);
+}
+
+void skWindow::showToast(const std::string& msg, int durationTicks) {
+    if (m_toast) m_toast->show(msg, durationTicks);
     InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
@@ -211,6 +224,10 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
         case WM_CREATE:
             m_ctx.resize(m_width, m_height);
             SetTimer(m_hwnd, 1, 100, nullptr);
+            m_toast = std::make_shared<skToast>(0, 0, 320, 48);
+            m_toast->setVisible(false);
+            m_overlays.push_back(m_toast);
+            repositionToast();
             return 0;
 
         case WM_SIZE:
