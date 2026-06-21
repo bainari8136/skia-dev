@@ -9,6 +9,8 @@ public:
 
     virtual void Paint(SkCanvas* canvas) = 0;
     virtual void OnEvent(const skEvent& event) {}
+    // Return true to consume the event (stops propagation to lower widgets).
+    virtual bool handleEvent(const skEvent& ev) { OnEvent(ev); return false; }
 
     virtual bool canFocus()       const { return false; }
     virtual void onFocusGained()        {}

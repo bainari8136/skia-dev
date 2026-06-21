@@ -1,4 +1,5 @@
 #include "platform/skWindow.h"
+#include "ui/skTheme.h"
 #include <windowsx.h>
 
 static const char* const SK_WNDCLASS = "skWidgetWindow";
@@ -40,6 +41,11 @@ void skWindow::addWidget(std::shared_ptr<skWidget> widget) {
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
+void skWindow::addOverlay(std::shared_ptr<skWidget> widget) {
+    m_overlays.push_back(std::move(widget));
+    if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
+}
+
 // ---------------------------------------------------------------------------
 // Focus
 // ---------------------------------------------------------------------------
@@ -72,11 +78,13 @@ void skWindow::onSize(int w, int h) {
 }
 
 void skWindow::onPaint() {
-    m_ctx.clear(SkColorSetRGB(240, 242, 247));
+    m_ctx.clear(skGetTheme().windowBg);
     SkCanvas* canvas = m_ctx.getCanvas();
     if (!canvas) return;
 
     for (auto& widget : m_widgets)
+        widget->Paint(canvas);
+    for (auto& widget : m_overlays)
         widget->Paint(canvas);
 
     blitToWindow();
@@ -116,8 +124,19 @@ void skWindow::blitToWindow() {
 // ---------------------------------------------------------------------------
 
 void skWindow::dispatchEvent(const skEvent& ev) {
-    for (auto& widget : m_widgets)
-        widget->OnEvent(ev);
+    // Overlays get first-pass; returning true consumes click-type events.
+    bool consumed = false;
+    if (ev.type == skEventType::MouseDown || ev.type == skEventType::MouseUp) {
+        for (auto& w : m_overlays) {
+            if (w->handleEvent(ev)) { consumed = true; break; }
+        }
+    } else {
+        for (auto& w : m_overlays) w->OnEvent(ev);
+    }
+
+    if (!consumed) {
+        for (auto& widget : m_widgets) widget->OnEvent(ev);
+    }
     InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 

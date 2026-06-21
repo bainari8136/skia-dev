@@ -26,9 +26,12 @@ set(SOURCES
     ui/skLabel.cpp
     ui/skCheckBox.cpp
     ui/skSlider.cpp
+    ui/skTheme.cpp
     ui/skPanel.cpp
     ui/skProgressBar.cpp
     ui/skTextInput.cpp
+    ui/skRadioButton.cpp
+    ui/skDropdown.cpp
     ui/skSizer.cpp
 )
 

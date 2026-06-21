@@ -1,4 +1,5 @@
 #include "skProgressBar.h"
+#include "skTheme.h"
 #include <include/core/SkPaint.h>
 #include <include/core/SkRRect.h>
 
@@ -6,30 +7,26 @@ skProgressBar::skProgressBar(int px, int py, int pw, int ph) : skWidget(px, py, 
 
 void skProgressBar::Paint(SkCanvas* canvas) {
     canvas->save();
-
-    const float r = (float)h / 2.f;
+    const auto& th = skGetTheme();
+    const float r  = (float)h / 2.f;
     SkRect rect = SkRect::MakeXYWH((float)x, (float)y, (float)w, (float)h);
 
-    // Track
     SkPaint track;
     track.setAntiAlias(true);
-    track.setColor(SkColorSetRGB(218, 220, 228));
+    track.setColor(th.trackBg);
     SkRRect trackRR;
     trackRR.setRectXY(rect, r, r);
     canvas->drawRRect(trackRR, track);
 
-    // Fill
-    float fillW = (float)w * m_value;
-    if (fillW > 0.f) {
+    if (m_value > 0.f) {
         SkPaint fill;
         fill.setAntiAlias(true);
-        fill.setColor(SkColorSetRGB(55, 120, 220));
-
-        // Clip to track bounds so the fill corners don't poke out
+        fill.setColor(th.accent);
         canvas->save();
         canvas->clipRRect(trackRR, true);
         SkRRect fillRR;
-        fillRR.setRectXY(SkRect::MakeXYWH((float)x, (float)y, fillW, (float)h), r, r);
+        fillRR.setRectXY(SkRect::MakeXYWH((float)x, (float)y, (float)w * m_value, (float)h),
+                         r, r);
         canvas->drawRRect(fillRR, fill);
         canvas->restore();
     }

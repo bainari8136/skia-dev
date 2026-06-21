@@ -14,6 +14,8 @@ public:
     bool create(HINSTANCE hInstance);
     void show(int cmdShow);
     void addWidget(std::shared_ptr<skWidget> widget);
+    // Overlays are painted last and get first-pass on click events (can consume them).
+    void addOverlay(std::shared_ptr<skWidget> widget);
 
     HWND hwnd() const { return m_hwnd; }
 
@@ -36,5 +38,6 @@ private:
 
     skRenderContext                        m_ctx;
     std::vector<std::shared_ptr<skWidget>> m_widgets;
+    std::vector<std::shared_ptr<skWidget>> m_overlays;
     std::shared_ptr<skWidget>              m_focus;
 };
