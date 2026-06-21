@@ -41,6 +41,9 @@ set(SOURCES
     ui/skToast.cpp
     ui/skToggle.cpp
     ui/skNumberInput.cpp
+    ui/skScrollPanel.cpp
+    ui/skModal.cpp
+    ui/skLink.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})

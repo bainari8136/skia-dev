@@ -18,6 +18,9 @@
 #include "ui/skBadge.h"
 #include "ui/skToggle.h"
 #include "ui/skNumberInput.h"
+#include "ui/skScrollPanel.h"
+#include "ui/skModal.h"
+#include "ui/skLink.h"
 #include "ui/skSizer.h"
 #include <vector>
 #include <memory>
@@ -35,10 +38,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // ---- Header ----
     auto title    = std::make_shared<skLabel>(32, 18, 300, 36, "skWidgets", 28.f);
     auto badge    = std::make_shared<skBadge>(200, 30, "alpha");
-    auto subtitle = std::make_shared<skLabel>(32, 56, 560, 18, "A Skia + Win32 UI framework", 12.f);
+    auto subtitle = std::make_shared<skLabel>(32, 56, 400, 18, "A Skia + Win32 UI framework", 12.f);
+    auto ghLink   = std::make_shared<skLink>(440, 59, "Source on GitHub \xe2\x86\x97", 11.f);
+    ghLink->setOnClick([window]() { window->showToast("Opening GitHub \xe2\x80\x94 imagine a browser launched!"); });
+
     window->addWidget(title);
     window->addWidget(badge);
     window->addWidget(subtitle);
+    window->addWidget(ghLink);
 
     auto darkChk = std::make_shared<skCheckBox>(600, 20, 200, 28, "Dark mode");
     darkChk->setTooltip("Switch between light and dark colour themes");
@@ -53,7 +60,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     window->addWidget(panel);
 
     // =====================================================================
-    // LEFT COLUMN — Profile
+    // LEFT COLUMN — Profile (always visible)
     // =====================================================================
     skSizer col(skDirection::Column, 12);
 
@@ -108,28 +115,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         28);
     spinner->setTooltip("Saving...");
 
-    saveBtn->setOnClick([nameInput, prioInput, window, spinner]() {
-        spinner->runFor(20); // ~2 seconds
-        std::string name = nameInput->text().empty() ? "anonymous" : nameInput->text();
-        window->showToast("Saved: " + name + "  (priority " + std::to_string(prioInput->value()) + ")");
-    });
-    cancelBtn->setOnClick([hwnd]() { DestroyWindow(hwnd); });
-
     addAll(window, col);
     window->addWidget(cancelBtn);
     window->addWidget(spinner);
 
     // =====================================================================
-    // RIGHT COLUMN — tab-switched (Settings | Files)
+    // RIGHT COLUMN — tab-switched (Settings | Files | About)
     // =====================================================================
     skSizer right(skDirection::Column, 12);
 
     auto tabBar = std::make_shared<skTabBar>(0,0,280,34);
     tabBar->addTab("Settings");
     tabBar->addTab("Files");
+    tabBar->addTab("About");
     right.add(tabBar, 34);
 
-    // Settings content
+    // -- Settings content --
     auto tog1 = std::make_shared<skToggle>(0,0,280,28,"Enable notifications"); tog1->setChecked(true);
     auto tog2 = std::make_shared<skToggle>(0,0,280,28,"Start on login");
     auto chk3 = std::make_shared<skCheckBox>(0,0,280,28,"Send usage statistics");
@@ -145,34 +146,63 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     dropdown->addOption("Orange");
     right.add(dropdown, 36);
 
-    // Files content (hidden by default)
+    // -- Files content --
     auto sep       = std::make_shared<skSeparator>(0, 0, 280, 1);
     auto fileLabel = std::make_shared<skLabel>(0, 0, 280, 18, "Recent files", 12.f);
     auto listBox   = std::make_shared<skListBox>(0, 0, 280, 150);
     listBox->setTooltip("Scroll with mouse wheel · arrow keys navigate");
-    listBox->addItem("document.txt");
-    listBox->addItem("report_q2.pdf");
-    listBox->addItem("notes.md");
-    listBox->addItem("config.json");
-    listBox->addItem("main.cpp");
-    listBox->addItem("CMakeLists.txt");
-    listBox->addItem("skWidgets.md");
+    for (auto& f : {"document.txt","report_q2.pdf","notes.md","config.json",
+                    "main.cpp","CMakeLists.txt","skWidgets.md"})
+        listBox->addItem(f);
     right.add(sep,       1);
     right.add(fileLabel, 18);
     right.add(listBox,   150);
+
+    // -- About content: scrollable info panel --
+    auto scrollPanel = std::make_shared<skScrollPanel>(0, 0, 280, 200);
+    {
+        skSizer info(skDirection::Column, 8);
+        struct Row { const char* text; float size; };
+        const Row rows[] = {
+            {"skWidgets framework",    13.f},
+            {"Renderer: Skia CPU raster",   11.f},
+            {"Platform: Win32 (x64)",        11.f},
+            {"Widgets: 21 (and counting)",   11.f},
+            {"Themes:  Light / Dark",        11.f},
+            {"Layout:  Row/Column Sizer",    11.f},
+            {"Events:  Mouse + Keyboard",    11.f},
+            {"Animation: 100 ms timer",      11.f},
+            {"Overlays: Dropdown, Modal",    11.f},
+            {"Containers: ScrollPanel",      11.f},
+            {"C++ standard: C++17 (MSVC)",   11.f},
+            {"License: Apache 2.0",          11.f},
+        };
+        for (auto& r : rows) {
+            auto lbl = std::make_shared<skLabel>(0, 0, 260, 20, r.text, r.size);
+            info.add(lbl, 20);
+        }
+        info.layout(10, 10, 260);
+        for (auto& e : info.children()) scrollPanel->addChild(e.widget);
+    }
+    right.add(scrollPanel, 200);
 
     right.layout(430, 102, 280);
     addAll(window, right);
     window->addOverlay(dropdown);
 
+    // Visibility groups
     std::vector<std::shared_ptr<skWidget>> settingsW = { tog1, tog2, chk3, themeLabel, dropdown };
     std::vector<std::shared_ptr<skWidget>> filesW    = { sep, fileLabel, listBox };
-    for (auto& fw : filesW) fw->setVisible(false);
+    std::vector<std::shared_ptr<skWidget>> aboutW    = { scrollPanel };
+
+    // Files and About hidden initially (Settings tab active)
+    for (auto& w : filesW)  w->setVisible(false);
+    for (auto& w : aboutW)  w->setVisible(false);
 
     tabBar->setOnChange([=](int idx, const std::string&) {
-        bool onSettings = (idx == 0);
-        for (auto& w : settingsW) w->setVisible(onSettings);
-        for (auto& fw : filesW)   fw->setVisible(!onSettings);
+        for (auto& w : settingsW) w->setVisible(idx == 0);
+        for (auto& w : filesW)   w->setVisible(idx == 1);
+        for (auto& w : aboutW)   w->setVisible(idx == 2);
         InvalidateRect(hwnd, nullptr, FALSE);
     });
 
@@ -187,6 +217,34 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         skSetTheme(th);
         InvalidateRect(hwnd, nullptr, FALSE);
     });
+
+    // =====================================================================
+    // MODAL — confirmation dialog for Save
+    // =====================================================================
+    auto modal = std::make_shared<skModal>(0, 0, 820, 640);
+    modal->setVisible(false);
+    window->addOverlay(modal);
+
+    // Keep modal covering the full client area on resize
+    window->setOnResize([modal](int w, int h) {
+        modal->w = w;
+        modal->h = h;
+    });
+
+    // Save button → show modal confirmation
+    modal->setOnConfirm([nameInput, prioInput, window, spinner]() {
+        spinner->runFor(20);
+        std::string name = nameInput->text().empty() ? "anonymous" : nameInput->text();
+        window->showToast("Saved: " + name + "  (priority " + std::to_string(prioInput->value()) + ")");
+    });
+
+    saveBtn->setOnClick([nameInput, window, modal]() {
+        std::string name = nameInput->text().empty() ? "anonymous" : nameInput->text();
+        modal->show("Confirm save", "Save changes for \"" + name + "\"?");
+        InvalidateRect(window->hwnd(), nullptr, FALSE);
+    });
+
+    cancelBtn->setOnClick([hwnd]() { DestroyWindow(hwnd); });
 
     return app.run();
 }

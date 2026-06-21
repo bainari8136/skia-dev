@@ -86,6 +86,7 @@ void skWindow::onSize(int w, int h) {
     m_height = h;
     m_ctx.resize(w, h);
     repositionToast();
+    if (m_onResize) m_onResize(w, h);
     InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 

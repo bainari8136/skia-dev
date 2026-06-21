@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <functional>
 #include "rendering/skRenderContext.h"
 #include "ui/skWidget.h"
 #include "ui/skEvent.h"
@@ -21,6 +22,9 @@ public:
 
     // Show a slide-in / slide-out notification at the bottom of the window.
     void showToast(const std::string& msg, int durationTicks = 25);
+
+    // Register a callback fired on every WM_SIZE with the new client (w, h).
+    void setOnResize(std::function<void(int, int)> cb) { m_onResize = std::move(cb); }
 
     HWND hwnd() const { return m_hwnd; }
 
@@ -51,6 +55,7 @@ private:
     skWidget* m_hoverWidget = nullptr;
     int       m_hoverTicks  = 0;
 
-    std::shared_ptr<skToast> m_toast;
+    std::shared_ptr<skToast>     m_toast;
     void repositionToast();
+    std::function<void(int,int)> m_onResize;
 };
