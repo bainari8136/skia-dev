@@ -1,0 +1,163 @@
+#include "platform/skWindow.h"
+#include <windowsx.h>
+
+static const char* const SK_WNDCLASS = "skWidgetWindow";
+
+skWindow::skWindow(const char* title, int width, int height)
+    : m_title(title), m_width(width), m_height(height) {}
+
+bool skWindow::create(HINSTANCE hInstance) {
+    m_hInstance = hInstance;
+
+    WNDCLASSEX wc   = {};
+    wc.cbSize        = sizeof(WNDCLASSEX);
+    wc.lpfnWndProc   = WndProc;
+    wc.hInstance     = hInstance;
+    wc.lpszClassName = SK_WNDCLASS;
+    wc.hCursor       = LoadCursor(nullptr, IDC_ARROW);
+    wc.hbrBackground = nullptr;
+
+    if (!RegisterClassEx(&wc)) return false;
+
+    m_hwnd = CreateWindowEx(
+        WS_EX_CLIENTEDGE, SK_WNDCLASS, m_title,
+        WS_OVERLAPPEDWINDOW,
+        CW_USEDEFAULT, CW_USEDEFAULT, m_width, m_height,
+        nullptr, nullptr, hInstance,
+        this   // passed to WM_NCCREATE as lpCreateParams
+    );
+
+    return m_hwnd != nullptr;
+}
+
+void skWindow::show(int cmdShow) {
+    ShowWindow(m_hwnd, cmdShow);
+    UpdateWindow(m_hwnd);
+}
+
+void skWindow::addWidget(std::shared_ptr<skWidget> widget) {
+    m_widgets.push_back(std::move(widget));
+    if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
+}
+
+// ---------------------------------------------------------------------------
+// Rendering
+// ---------------------------------------------------------------------------
+
+void skWindow::onSize(int w, int h) {
+    m_width  = w;
+    m_height = h;
+    m_ctx.resize(w, h);
+    InvalidateRect(m_hwnd, nullptr, FALSE);
+}
+
+void skWindow::onPaint() {
+    m_ctx.clear(SK_ColorWHITE);
+    SkCanvas* canvas = m_ctx.getCanvas();
+    if (!canvas) return;
+
+    for (auto& widget : m_widgets)
+        widget->Paint(canvas);
+
+    blitToWindow();
+}
+
+void skWindow::blitToWindow() {
+    SkPixmap pixmap;
+    if (!m_ctx.readPixels(pixmap)) return;
+
+    BITMAPINFO bmi            = {};
+    bmi.bmiHeader.biSize      = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth     = m_width;
+    bmi.bmiHeader.biHeight    = -m_height; // top-down
+    bmi.bmiHeader.biPlanes    = 1;
+    bmi.bmiHeader.biBitCount  = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+
+    PAINTSTRUCT ps;
+    HDC hdc   = BeginPaint(m_hwnd, &ps);
+    HDC memdc = CreateCompatibleDC(hdc);
+
+    void*   bits = nullptr;
+    HBITMAP hbmp = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, &bits, nullptr, 0);
+    HBITMAP hold = (HBITMAP)SelectObject(memdc, hbmp);
+
+    memcpy(bits, pixmap.addr(), (size_t)m_width * m_height * 4);
+    BitBlt(hdc, 0, 0, m_width, m_height, memdc, 0, 0, SRCCOPY);
+
+    SelectObject(memdc, hold);
+    DeleteObject(hbmp);
+    DeleteDC(memdc);
+    EndPaint(m_hwnd, &ps);
+}
+
+// ---------------------------------------------------------------------------
+// Event dispatch
+// ---------------------------------------------------------------------------
+
+void skWindow::dispatchEvent(const skEvent& ev) {
+    for (auto& widget : m_widgets)
+        widget->OnEvent(ev);
+    InvalidateRect(m_hwnd, nullptr, FALSE);
+}
+
+// ---------------------------------------------------------------------------
+// Win32 message handling
+// ---------------------------------------------------------------------------
+
+LRESULT CALLBACK skWindow::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
+    skWindow* self = nullptr;
+
+    if (msg == WM_NCCREATE) {
+        auto* cs = reinterpret_cast<CREATESTRUCT*>(lp);
+        self     = reinterpret_cast<skWindow*>(cs->lpCreateParams);
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(self));
+        self->m_hwnd = hwnd;
+    } else {
+        self = reinterpret_cast<skWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+    }
+
+    if (self) return self->handleMessage(msg, wp, lp);
+    return DefWindowProc(hwnd, msg, wp, lp);
+}
+
+LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
+    switch (msg) {
+        case WM_CREATE:
+            m_ctx.resize(m_width, m_height);
+            return 0;
+
+        case WM_SIZE:
+            if (LOWORD(lp) > 0 && HIWORD(lp) > 0)
+                onSize(LOWORD(lp), HIWORD(lp));
+            return 0;
+
+        case WM_PAINT:
+            onPaint();
+            return 0;
+
+        case WM_ERASEBKGND:
+            return 1;
+
+        case WM_MOUSEMOVE:
+            dispatchEvent({ skEventType::MouseMove, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), 0 });
+            return 0;
+
+        case WM_LBUTTONDOWN:
+            SetCapture(m_hwnd);
+            dispatchEvent({ skEventType::MouseDown, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), 0 });
+            return 0;
+
+        case WM_LBUTTONUP:
+            ReleaseCapture();
+            dispatchEvent({ skEventType::MouseUp, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), 0 });
+            return 0;
+
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            return 0;
+
+        default:
+            return DefWindowProc(m_hwnd, msg, wp, lp);
+    }
+}

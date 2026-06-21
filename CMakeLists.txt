@@ -1,23 +1,35 @@
 cmake_minimum_required(VERSION 3.29.1)
-
 project(skia-dev)
 
-
-set(SKIA_INCLUDE_DIR "C://skia")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(SKIA_LIB 
-"C:\\skia\\out\\Release-windows-x64\\skia.lib")
+# Match the static CRT Skia was built with (/MT instead of /MD)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-include_directories(${SKIA_INCLUDE_DIR})
+set(SKIA_DIR "C:/skia")
+set(SKIA_LIB "C:/skia/out/Release-windows-x64/skia.lib")
 
+include_directories(${SKIA_DIR})
+include_directories(${CMAKE_SOURCE_DIR})
 
-add_executable(main main.cpp)
+# Prevent Windows.h from defining min/max macros that clash with Skia headers
+add_compile_definitions(NOMINMAX WIN32_LEAN_AND_MEAN)
 
+set(SOURCES
+    main.cpp
+    core/skApp.cpp
+    platform/skWindow.cpp
+    rendering/skRenderContext.cpp
+    ui/skButton.cpp
+)
 
-target_link_libraries(main  
-${SKIA_LIB}
-gdi32
-user32
-opengl32)
+add_executable(main WIN32 ${SOURCES})
+
+target_link_libraries(main
+    ${SKIA_LIB}
+    gdi32
+    user32
+    opengl32
+    dwrite
+)
