@@ -16,9 +16,19 @@ public:
     virtual void onFocusGained()        {}
     virtual void onFocusLost()          {}
 
+    virtual void onTick()               {} // fired ~every 530 ms by WM_TIMER
+    virtual void onMouseEnter()         {}
+    virtual void onMouseLeave()         {}
+
+    void setTooltip(std::string t)      { m_tooltip = std::move(t); }
+    const std::string& tooltip() const  { return m_tooltip; }
+
     bool contains(int px, int py) const {
         return px >= x && px < x + w && py >= y && py < y + h;
     }
 
     int x, y, w, h;
+
+protected:
+    std::string m_tooltip;
 };

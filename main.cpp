@@ -11,6 +11,8 @@
 #include "ui/skTextInput.h"
 #include "ui/skRadioButton.h"
 #include "ui/skDropdown.h"
+#include "ui/skListBox.h"
+#include "ui/skSeparator.h"
 #include "ui/skSizer.h"
 
 static void addAll(skWindow* win, const skSizer& sizer) {
@@ -31,6 +33,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
 
     // Dark-mode toggle in header
     auto darkChk = std::make_shared<skCheckBox>(600, 20, 200, 28, "Dark mode");
+    darkChk->setTooltip("Switch between light and dark colour themes");
     darkChk->setOnChange([hwnd](bool dark) {
         skSetTheme(dark ? skTheme::dark() : skTheme::light());
         InvalidateRect(hwnd, nullptr, FALSE);
@@ -78,6 +81,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // Buttons
     auto saveBtn   = std::make_shared<skButton>(0,0,110,38,"Save");
     auto cancelBtn = std::make_shared<skButton>(0,0,110,38,"Cancel");
+    saveBtn->setTooltip("Save your changes");
+    cancelBtn->setTooltip("Discard changes and close");
     col.add(saveBtn, 38);
 
     col.layout(50, 102, 320);
@@ -116,6 +121,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     dropdown->addOption("Teal");
     dropdown->addOption("Orange");
     right.add(dropdown, 36);
+
+    // Separator + file list
+    auto sep = std::make_shared<skSeparator>(0, 0, 280, 1);
+    right.add(sep, 1);
+
+    auto fileLabel = std::make_shared<skLabel>(0, 0, 280, 18, "Recent files", 12.f);
+    right.add(fileLabel, 18);
+
+    auto listBox = std::make_shared<skListBox>(0, 0, 280, 150);
+    listBox->setTooltip("Scroll with mouse wheel · arrow keys navigate");
+    listBox->addItem("document.txt");
+    listBox->addItem("report_q2.pdf");
+    listBox->addItem("notes.md");
+    listBox->addItem("config.json");
+    listBox->addItem("main.cpp");
+    listBox->addItem("CMakeLists.txt");
+    listBox->addItem("skWidgets.md");
+    right.add(listBox, 150);
 
     right.layout(430, 102, 280);
     addAll(window, right);

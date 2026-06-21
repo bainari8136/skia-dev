@@ -50,7 +50,7 @@ void skTextInput::Paint(SkCanvas* canvas) {
     textPaint.setColor(empty ? th.textPlaceholder : th.textPrimary);
     canvas->drawString(display.c_str(), textL - bounds.left(), ty, font, textPaint);
 
-    if (m_focused) {
+    if (m_focused && m_cursorVisible) {
         float cx = textL;
         if (!empty) {
             SkScalar adv = font.measureText(m_text.c_str(), m_cursor, SkTextEncoding::kUTF8, nullptr);
@@ -65,6 +65,10 @@ void skTextInput::Paint(SkCanvas* canvas) {
 
     canvas->restore();
     canvas->restore();
+}
+
+void skTextInput::onTick() {
+    if (m_focused) m_cursorVisible = !m_cursorVisible;
 }
 
 void skTextInput::OnEvent(const skEvent& event) {

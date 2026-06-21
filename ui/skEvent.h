@@ -4,8 +4,9 @@ enum class skEventType {
     MouseDown,
     MouseUp,
     MouseMove,
-    KeyChar,   // WM_CHAR  — printable + control chars (ch field)
-    KeyDown    // WM_KEYDOWN — virtual key code (button field)
+    MouseWheel, // button = WHEEL_DELTA-scaled delta (+120 = up, -120 = down)
+    KeyChar,    // WM_CHAR  — printable + control chars (ch field)
+    KeyDown     // WM_KEYDOWN — virtual key code (button field)
 };
 
 struct skEvent {

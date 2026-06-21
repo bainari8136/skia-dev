@@ -33,6 +33,8 @@ set(SOURCES
     ui/skRadioButton.cpp
     ui/skDropdown.cpp
     ui/skSizer.cpp
+    ui/skListBox.cpp
+    ui/skSeparator.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})

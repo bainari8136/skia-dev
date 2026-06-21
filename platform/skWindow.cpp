@@ -1,5 +1,9 @@
 #include "platform/skWindow.h"
 #include "ui/skTheme.h"
+#include "ui/skTypeface.h"
+#include <include/core/SkFont.h>
+#include <include/core/SkPaint.h>
+#include <include/core/SkRRect.h>
 #include <windowsx.h>
 
 static const char* const SK_WNDCLASS = "skWidgetWindow";
@@ -87,6 +91,9 @@ void skWindow::onPaint() {
     for (auto& widget : m_overlays)
         widget->Paint(canvas);
 
+    if (m_hoverWidget && m_hoverTicks >= 1 && !m_hoverWidget->tooltip().empty())
+        drawTooltip(canvas, m_hoverWidget);
+
     blitToWindow();
 }
 
@@ -140,6 +147,46 @@ void skWindow::dispatchEvent(const skEvent& ev) {
     InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
+void skWindow::drawTooltip(SkCanvas* canvas, skWidget* w) {
+    const auto& th = skGetTheme();
+    static sk_sp<SkTypeface> s_tf = skGetSystemTypeface();
+    SkFont font(s_tf, 12.f);
+    font.setEdging(SkFont::Edging::kAntiAlias);
+
+    const std::string& tip = w->tooltip();
+    SkRect bounds;
+    font.measureText(tip.c_str(), tip.size(), SkTextEncoding::kUTF8, &bounds);
+
+    const float pad = 8.f;
+    float tipW = bounds.width() + pad * 2.f;
+    float tipH = bounds.height() + pad * 2.f;
+
+    float tx = (float)w->x;
+    float ty = (float)(w->y + w->h) + 4.f;
+    if (tx + tipW > (float)m_width)  tx = (float)m_width - tipW - 4.f;
+    if (ty + tipH > (float)m_height) ty = (float)w->y - tipH - 4.f;
+
+    SkRRect rr;
+    rr.setRectXY(SkRect::MakeXYWH(tx, ty, tipW, tipH), 4.f, 4.f);
+
+    SkPaint bg;
+    bg.setAntiAlias(true);
+    bg.setColor(th.panelBg);
+    canvas->drawRRect(rr, bg);
+
+    SkPaint brd;
+    brd.setAntiAlias(true);
+    brd.setStyle(SkPaint::kStroke_Style);
+    brd.setStrokeWidth(1.f);
+    brd.setColor(th.panelBorder);
+    canvas->drawRRect(rr, brd);
+
+    SkPaint tp;
+    tp.setAntiAlias(true);
+    tp.setColor(th.textPrimary);
+    canvas->drawString(tip.c_str(), tx + pad - bounds.left(), ty + pad - bounds.top(), font, tp);
+}
+
 // ---------------------------------------------------------------------------
 // Win32 message handling
 // ---------------------------------------------------------------------------
@@ -164,6 +211,7 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_CREATE:
             m_ctx.resize(m_width, m_height);
+            SetTimer(m_hwnd, 1, 530, nullptr);
             return 0;
 
         case WM_SIZE:
@@ -178,9 +226,47 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
         case WM_ERASEBKGND:
             return 1;
 
-        case WM_MOUSEMOVE:
-            dispatchEvent({ skEventType::MouseMove, GET_X_LPARAM(lp), GET_Y_LPARAM(lp) });
+        case WM_TIMER:
+            for (auto& w : m_widgets) w->onTick();
+            for (auto& w : m_overlays) w->onTick();
+            if (m_hoverWidget && !m_hoverWidget->tooltip().empty()) ++m_hoverTicks;
+            InvalidateRect(m_hwnd, nullptr, FALSE);
             return 0;
+
+        case WM_MOUSEWHEEL: {
+            POINT pt{ GET_X_LPARAM(lp), GET_Y_LPARAM(lp) };
+            ScreenToClient(m_hwnd, &pt);
+            skEvent wev;
+            wev.type   = skEventType::MouseWheel;
+            wev.x      = pt.x;
+            wev.y      = pt.y;
+            wev.button = GET_WHEEL_DELTA_WPARAM(wp);
+            for (auto& widget : m_widgets) {
+                if (widget->contains(wev.x, wev.y)) {
+                    widget->OnEvent(wev);
+                    InvalidateRect(m_hwnd, nullptr, FALSE);
+                    break;
+                }
+            }
+            return 0;
+        }
+
+        case WM_MOUSEMOVE: {
+            int mx = GET_X_LPARAM(lp), my = GET_Y_LPARAM(lp);
+            // Update hover tracking for tooltip delay
+            skWidget* hit = nullptr;
+            for (auto it = m_widgets.rbegin(); it != m_widgets.rend(); ++it) {
+                if ((*it)->contains(mx, my)) { hit = it->get(); break; }
+            }
+            if (hit != m_hoverWidget) {
+                if (m_hoverWidget) m_hoverWidget->onMouseLeave();
+                m_hoverWidget = hit;
+                m_hoverTicks  = 0;
+                if (m_hoverWidget) m_hoverWidget->onMouseEnter();
+            }
+            dispatchEvent({ skEventType::MouseMove, mx, my });
+            return 0;
+        }
 
         case WM_LBUTTONDOWN: {
             SetCapture(m_hwnd);
@@ -216,6 +302,7 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
             return 0;
 
         case WM_DESTROY:
+            KillTimer(m_hwnd, 1);
             PostQuitMessage(0);
             return 0;
 
