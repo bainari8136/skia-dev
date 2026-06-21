@@ -29,6 +29,7 @@ set(SOURCES
     ui/skPanel.cpp
     ui/skProgressBar.cpp
     ui/skTextInput.cpp
+    ui/skSizer.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})
