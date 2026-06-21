@@ -23,6 +23,9 @@ public:
     void setTooltip(std::string t)      { m_tooltip = std::move(t); }
     const std::string& tooltip() const  { return m_tooltip; }
 
+    void setVisible(bool v) { m_visible = v; }
+    bool visible()    const { return m_visible; }
+
     bool contains(int px, int py) const {
         return px >= x && px < x + w && py >= y && py < y + h;
     }
@@ -31,4 +34,5 @@ public:
 
 protected:
     std::string m_tooltip;
+    bool        m_visible = true;
 };

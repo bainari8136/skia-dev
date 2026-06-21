@@ -68,7 +68,11 @@ void skTextInput::Paint(SkCanvas* canvas) {
 }
 
 void skTextInput::onTick() {
-    if (m_focused) m_cursorVisible = !m_cursorVisible;
+    if (!m_focused) return;
+    if (++m_blinkCount >= 5) { // 5 × 100 ms = 500 ms blink period
+        m_blinkCount   = 0;
+        m_cursorVisible = !m_cursorVisible;
+    }
 }
 
 void skTextInput::OnEvent(const skEvent& event) {

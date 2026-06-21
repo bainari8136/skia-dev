@@ -56,7 +56,7 @@ void skWindow::addOverlay(std::shared_ptr<skWidget> widget) {
 
 std::shared_ptr<skWidget> skWindow::findFocusTarget(int mx, int my) {
     for (auto& w : m_widgets) {
-        if (w->canFocus() && w->contains(mx, my))
+        if (w->visible() && w->canFocus() && w->contains(mx, my))
             return w;
     }
     return nullptr;
@@ -87,11 +87,11 @@ void skWindow::onPaint() {
     if (!canvas) return;
 
     for (auto& widget : m_widgets)
-        widget->Paint(canvas);
+        if (widget->visible()) widget->Paint(canvas);
     for (auto& widget : m_overlays)
-        widget->Paint(canvas);
+        if (widget->visible()) widget->Paint(canvas);
 
-    if (m_hoverWidget && m_hoverTicks >= 1 && !m_hoverWidget->tooltip().empty())
+    if (m_hoverWidget && m_hoverTicks >= 5 && !m_hoverWidget->tooltip().empty())
         drawTooltip(canvas, m_hoverWidget);
 
     blitToWindow();
@@ -131,18 +131,17 @@ void skWindow::blitToWindow() {
 // ---------------------------------------------------------------------------
 
 void skWindow::dispatchEvent(const skEvent& ev) {
-    // Overlays get first-pass; returning true consumes click-type events.
     bool consumed = false;
     if (ev.type == skEventType::MouseDown || ev.type == skEventType::MouseUp) {
         for (auto& w : m_overlays) {
-            if (w->handleEvent(ev)) { consumed = true; break; }
+            if (w->visible() && w->handleEvent(ev)) { consumed = true; break; }
         }
     } else {
-        for (auto& w : m_overlays) w->OnEvent(ev);
+        for (auto& w : m_overlays) if (w->visible()) w->OnEvent(ev);
     }
 
     if (!consumed) {
-        for (auto& widget : m_widgets) widget->OnEvent(ev);
+        for (auto& widget : m_widgets) if (widget->visible()) widget->OnEvent(ev);
     }
     InvalidateRect(m_hwnd, nullptr, FALSE);
 }
@@ -211,7 +210,7 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
     switch (msg) {
         case WM_CREATE:
             m_ctx.resize(m_width, m_height);
-            SetTimer(m_hwnd, 1, 530, nullptr);
+            SetTimer(m_hwnd, 1, 100, nullptr);
             return 0;
 
         case WM_SIZE:
@@ -227,8 +226,8 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
             return 1;
 
         case WM_TIMER:
-            for (auto& w : m_widgets) w->onTick();
-            for (auto& w : m_overlays) w->onTick();
+            for (auto& w : m_widgets) if (w->visible()) w->onTick();
+            for (auto& w : m_overlays) if (w->visible()) w->onTick();
             if (m_hoverWidget && !m_hoverWidget->tooltip().empty()) ++m_hoverTicks;
             InvalidateRect(m_hwnd, nullptr, FALSE);
             return 0;
@@ -256,7 +255,7 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
             // Update hover tracking for tooltip delay
             skWidget* hit = nullptr;
             for (auto it = m_widgets.rbegin(); it != m_widgets.rend(); ++it) {
-                if ((*it)->contains(mx, my)) { hit = it->get(); break; }
+                if ((*it)->visible() && (*it)->contains(mx, my)) { hit = it->get(); break; }
             }
             if (hit != m_hoverWidget) {
                 if (m_hoverWidget) m_hoverWidget->onMouseLeave();

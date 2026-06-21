@@ -11,7 +11,7 @@ public:
     void OnEvent(const skEvent& event) override;
 
     bool canFocus()        const override { return true; }
-    void onFocusGained()         override { m_focused = true; m_cursorVisible = true; }
+    void onFocusGained()         override { m_focused = true; m_cursorVisible = true; m_blinkCount = 0; }
     void onFocusLost()           override { m_focused = false; }
     void onTick()                override;
 
@@ -25,5 +25,6 @@ private:
     size_t       m_cursor        = 0;
     bool         m_focused       = false;
     bool         m_cursorVisible = true;
+    int          m_blinkCount    = 0;
     std::function<void(const std::string&)> m_onChange;
 };

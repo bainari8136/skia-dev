@@ -35,6 +35,9 @@ set(SOURCES
     ui/skSizer.cpp
     ui/skListBox.cpp
     ui/skSeparator.cpp
+    ui/skTabBar.cpp
+    ui/skSpinner.cpp
+    ui/skBadge.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})
