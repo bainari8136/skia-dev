@@ -71,6 +71,25 @@ void skWindow::setFocus(std::shared_ptr<skWidget> w) {
     InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
+void skWindow::cycleFocus(bool reverse) {
+    std::vector<std::shared_ptr<skWidget>> focusables;
+    for (auto& w : m_widgets)
+        if (w->visible() && w->canFocus()) focusables.push_back(w);
+    if (focusables.empty()) return;
+
+    int idx = -1;
+    for (int i = 0; i < (int)focusables.size(); ++i)
+        if (focusables[i] == m_focus) { idx = i; break; }
+
+    int next;
+    if (reverse)
+        next = (idx <= 0) ? (int)focusables.size() - 1 : idx - 1;
+    else
+        next = (idx + 1) % (int)focusables.size();
+
+    setFocus(focusables[next]);
+}
+
 // ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
@@ -309,6 +328,11 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
             return 0;
 
         case WM_KEYDOWN:
+            if (wp == VK_TAB) {
+                bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+                cycleFocus(shift);
+                return 0;
+            }
             if (m_focus) {
                 skEvent e;
                 e.type   = skEventType::KeyDown;

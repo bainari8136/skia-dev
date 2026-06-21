@@ -38,6 +38,7 @@ private:
     void dispatchEvent(const skEvent& ev);
     void setFocus(std::shared_ptr<skWidget> w);
     std::shared_ptr<skWidget> findFocusTarget(int mx, int my);
+    void cycleFocus(bool reverse);
     void drawTooltip(SkCanvas* canvas, skWidget* w);
 
     HWND        m_hwnd      = nullptr;
