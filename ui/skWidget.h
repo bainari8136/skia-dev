@@ -10,6 +10,10 @@ public:
     virtual void Paint(SkCanvas* canvas) = 0;
     virtual void OnEvent(const skEvent& event) {}
 
+    virtual bool canFocus()       const { return false; }
+    virtual void onFocusGained()        {}
+    virtual void onFocusLost()          {}
+
     bool contains(int px, int py) const {
         return px >= x && px < x + w && py >= y && py < y + h;
     }

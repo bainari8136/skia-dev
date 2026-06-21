@@ -26,6 +26,9 @@ set(SOURCES
     ui/skLabel.cpp
     ui/skCheckBox.cpp
     ui/skSlider.cpp
+    ui/skPanel.cpp
+    ui/skProgressBar.cpp
+    ui/skTextInput.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})

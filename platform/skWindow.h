@@ -25,13 +25,16 @@ private:
     void onPaint();
     void blitToWindow();
     void dispatchEvent(const skEvent& ev);
+    void setFocus(std::shared_ptr<skWidget> w);
+    std::shared_ptr<skWidget> findFocusTarget(int mx, int my);
 
-    HWND        m_hwnd     = nullptr;
+    HWND        m_hwnd      = nullptr;
     HINSTANCE   m_hInstance = nullptr;
     const char* m_title;
     int         m_width;
     int         m_height;
 
-    skRenderContext                       m_ctx;
+    skRenderContext                        m_ctx;
     std::vector<std::shared_ptr<skWidget>> m_widgets;
+    std::shared_ptr<skWidget>              m_focus;
 };

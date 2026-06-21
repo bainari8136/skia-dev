@@ -24,7 +24,7 @@ bool skWindow::create(HINSTANCE hInstance) {
         WS_OVERLAPPEDWINDOW,
         CW_USEDEFAULT, CW_USEDEFAULT, m_width, m_height,
         nullptr, nullptr, hInstance,
-        this   // passed to WM_NCCREATE as lpCreateParams
+        this
     );
 
     return m_hwnd != nullptr;
@@ -41,6 +41,26 @@ void skWindow::addWidget(std::shared_ptr<skWidget> widget) {
 }
 
 // ---------------------------------------------------------------------------
+// Focus
+// ---------------------------------------------------------------------------
+
+std::shared_ptr<skWidget> skWindow::findFocusTarget(int mx, int my) {
+    for (auto& w : m_widgets) {
+        if (w->canFocus() && w->contains(mx, my))
+            return w;
+    }
+    return nullptr;
+}
+
+void skWindow::setFocus(std::shared_ptr<skWidget> w) {
+    if (w == m_focus) return;
+    if (m_focus) m_focus->onFocusLost();
+    m_focus = w;
+    if (m_focus) m_focus->onFocusGained();
+    InvalidateRect(m_hwnd, nullptr, FALSE);
+}
+
+// ---------------------------------------------------------------------------
 // Rendering
 // ---------------------------------------------------------------------------
 
@@ -52,7 +72,7 @@ void skWindow::onSize(int w, int h) {
 }
 
 void skWindow::onPaint() {
-    m_ctx.clear(SK_ColorWHITE);
+    m_ctx.clear(SkColorSetRGB(240, 242, 247));
     SkCanvas* canvas = m_ctx.getCanvas();
     if (!canvas) return;
 
@@ -69,7 +89,7 @@ void skWindow::blitToWindow() {
     BITMAPINFO bmi            = {};
     bmi.bmiHeader.biSize      = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth     = m_width;
-    bmi.bmiHeader.biHeight    = -m_height; // top-down
+    bmi.bmiHeader.biHeight    = -m_height;
     bmi.bmiHeader.biPlanes    = 1;
     bmi.bmiHeader.biBitCount  = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
@@ -140,17 +160,40 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
             return 1;
 
         case WM_MOUSEMOVE:
-            dispatchEvent({ skEventType::MouseMove, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), 0 });
+            dispatchEvent({ skEventType::MouseMove, GET_X_LPARAM(lp), GET_Y_LPARAM(lp) });
             return 0;
 
-        case WM_LBUTTONDOWN:
+        case WM_LBUTTONDOWN: {
             SetCapture(m_hwnd);
-            dispatchEvent({ skEventType::MouseDown, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), 0 });
+            int mx = GET_X_LPARAM(lp), my = GET_Y_LPARAM(lp);
+            setFocus(findFocusTarget(mx, my));
+            dispatchEvent({ skEventType::MouseDown, mx, my });
             return 0;
+        }
 
         case WM_LBUTTONUP:
             ReleaseCapture();
-            dispatchEvent({ skEventType::MouseUp, GET_X_LPARAM(lp), GET_Y_LPARAM(lp), 0 });
+            dispatchEvent({ skEventType::MouseUp, GET_X_LPARAM(lp), GET_Y_LPARAM(lp) });
+            return 0;
+
+        case WM_CHAR:
+            if (m_focus) {
+                skEvent e;
+                e.type = skEventType::KeyChar;
+                e.ch   = static_cast<wchar_t>(wp);
+                m_focus->OnEvent(e);
+                InvalidateRect(m_hwnd, nullptr, FALSE);
+            }
+            return 0;
+
+        case WM_KEYDOWN:
+            if (m_focus) {
+                skEvent e;
+                e.type   = skEventType::KeyDown;
+                e.button = static_cast<int>(wp);
+                m_focus->OnEvent(e);
+                InvalidateRect(m_hwnd, nullptr, FALSE);
+            }
             return 0;
 
         case WM_DESTROY:

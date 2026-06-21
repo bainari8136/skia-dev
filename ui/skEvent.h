@@ -3,11 +3,15 @@
 enum class skEventType {
     MouseDown,
     MouseUp,
-    MouseMove
+    MouseMove,
+    KeyChar,   // WM_CHAR  — printable + control chars (ch field)
+    KeyDown    // WM_KEYDOWN — virtual key code (button field)
 };
 
 struct skEvent {
     skEventType type;
-    int x, y;
-    int button; // 0=left, 1=right, 2=middle
+    int     x      = 0;
+    int     y      = 0;
+    int     button = 0;   // mouse button (0=left) OR virtual key code for KeyDown
+    wchar_t ch     = 0;   // for KeyChar
 };
