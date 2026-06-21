@@ -1,16 +1,8 @@
 #include "skButton.h"
-#include <include/core/SkFontMgr.h>
-#include <include/core/SkFontStyle.h>
-#include <include/ports/SkTypeface_win.h>
+#include "skTypeface.h"
 #include <include/core/SkPaint.h>
 #include <include/core/SkRRect.h>
 #include <include/core/SkFont.h>
-
-static sk_sp<SkTypeface> systemTypeface() {
-    auto mgr = SkFontMgr_New_DirectWrite();
-    if (!mgr) return nullptr;
-    return mgr->matchFamilyStyle("Segoe UI", SkFontStyle());
-}
 
 skButton::skButton(int bx, int by, int bw, int bh, std::string label)
     : skWidget(bx, by, bw, bh), m_label(std::move(label)) {}
@@ -42,7 +34,7 @@ void skButton::Paint(SkCanvas* canvas) {
     canvas->drawRRect(rrect, border);
 
     // Label — load typeface once per process
-    static sk_sp<SkTypeface> s_tf = systemTypeface();
+    static sk_sp<SkTypeface> s_tf = skGetSystemTypeface();
     SkFont font(s_tf, 20.0f);
     font.setEdging(SkFont::Edging::kAntiAlias);
 

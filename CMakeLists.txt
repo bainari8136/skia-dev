@@ -21,7 +21,11 @@ set(SOURCES
     core/skApp.cpp
     platform/skWindow.cpp
     rendering/skRenderContext.cpp
+    ui/skTypeface.cpp
     ui/skButton.cpp
+    ui/skLabel.cpp
+    ui/skCheckBox.cpp
+    ui/skSlider.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})
