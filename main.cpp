@@ -6,9 +6,10 @@
 #include "ui/skLabel.h"
 #include "ui/skCheckBox.h"
 #include "ui/skSlider.h"
-#include "ui/skPanel.h"
+#include "ui/skCard.h"
 #include "ui/skProgressBar.h"
 #include "ui/skTextInput.h"
+#include "ui/skPasswordBox.h"
 #include "ui/skRadioButton.h"
 #include "ui/skDropdown.h"
 #include "ui/skListBox.h"
@@ -24,6 +25,8 @@
 #include "ui/skTextArea.h"
 #include "ui/skStatusBar.h"
 #include "ui/skExpander.h"
+#include "ui/skImage.h"
+#include "ui/skTreeView.h"
 #include "ui/skSizer.h"
 #include <vector>
 #include <memory>
@@ -47,12 +50,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         window->showToast("Opening GitHub \xe2\x80\x94 imagine a browser launched!");
     });
 
+    // skImage widget in the header (shows placeholder — drop a PNG here to display it)
+    auto headerImg = std::make_shared<skImage>(728, 10, 60, 60);
+    headerImg->setPlaceholder("logo.png");
+    headerImg->loadFromFile("logo.png"); // no-op if file absent
+
     window->addWidget(title);
     window->addWidget(badge);
     window->addWidget(subtitle);
     window->addWidget(ghLink);
+    window->addWidget(headerImg);
 
-    auto darkChk = std::make_shared<skCheckBox>(600, 20, 200, 28, "Dark mode");
+    auto darkChk = std::make_shared<skCheckBox>(596, 22, 124, 28, "Dark mode");
     darkChk->setTooltip("Switch between light and dark colour themes");
     darkChk->setOnChange([hwnd](bool dark) {
         skSetTheme(dark ? skTheme::dark() : skTheme::light());
@@ -60,9 +69,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     });
     window->addWidget(darkChk);
 
-    // ---- Card ----
-    auto panel = std::make_shared<skPanel>(24, 82, 772, 526);
-    window->addWidget(panel);
+    // ---- Card (skCard replaces skPanel — adds blurred drop shadow) ----
+    auto card = std::make_shared<skCard>(24, 82, 772, 526);
+    window->addWidget(card);
 
     // =========================================================================
     // LEFT COLUMN — Profile (always visible)
@@ -116,8 +125,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
 
     auto spinner = std::make_shared<skSpinner>(
         cancelBtn->x + cancelBtn->w + 12,
-        cancelBtn->y + (cancelBtn->h - 28) / 2,
-        28);
+        cancelBtn->y + (cancelBtn->h - 28) / 2, 28);
     spinner->setTooltip("Saving...");
 
     addAll(window, col);
@@ -126,7 +134,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
 
     // =========================================================================
     // RIGHT COLUMN — 4 tabs: Settings | Files | Notes | About
-    // Each tab lays out its content at the same kContentY so groups don't stack.
+    // Each tab uses its own sizer rooted at kContentY to avoid stacking.
     // =========================================================================
     const int kTabX     = 430, kTabY = 102, kTabW = 280;
     const int kContentY = kTabY + 34 + 12;
@@ -142,7 +150,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     std::vector<std::shared_ptr<skWidget>> settingsW;
     std::shared_ptr<skDropdown> dropdown;
     {
-        skSizer s(skDirection::Column, 12);
+        skSizer s(skDirection::Column, 10);
         auto tog1 = std::make_shared<skToggle>(0,0,kTabW,28,"Enable notifications");
         tog1->setChecked(true);
         tog1->setTooltip("Show desktop and email notifications");
@@ -158,6 +166,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         dropdown->addOption("Teal");
         dropdown->addOption("Orange");
         s.add(dropdown, 36);
+
+        // Password field demo
+        auto sep2     = std::make_shared<skSeparator>(0, 0, kTabW, 1);
+        auto passLabel = std::make_shared<skLabel>(0, 0, kTabW, 18, "Account password", 12.f);
+        auto passInput = std::make_shared<skPasswordBox>(0, 0, kTabW, 36, "Enter password...");
+        passInput->setTooltip("Characters are masked — Tab to next field");
+        s.add(sep2, 1); s.add(passLabel, 18); s.add(passInput, 36);
+
         s.layout(kTabX, kContentY, kTabW);
         for (auto& e : s.children()) { window->addWidget(e.widget); settingsW.push_back(e.widget); }
         window->addOverlay(dropdown);
@@ -175,30 +191,61 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         InvalidateRect(hwnd, nullptr, FALSE);
     });
 
-    // ---- Files tab ----
+    // ---- Files tab — project tree view ----
     std::vector<std::shared_ptr<skWidget>> filesW;
     {
-        skSizer s(skDirection::Column, 12);
-        auto sep       = std::make_shared<skSeparator>(0, 0, kTabW, 1);
-        auto fileLabel = std::make_shared<skLabel>(0, 0, kTabW, 18, "Recent files", 12.f);
-        auto listBox   = std::make_shared<skListBox>(0, 0, kTabW, 170);
-        listBox->setTooltip("Scroll with mouse wheel \xc2\xb7 arrow keys navigate");
-        for (auto& f : {"document.txt","report_q2.pdf","notes.md","config.json",
-                        "main.cpp","CMakeLists.txt","skWidgets.md"})
-            listBox->addItem(f);
-        s.add(sep, 1); s.add(fileLabel, 18); s.add(listBox, 170);
-        s.layout(kTabX, kContentY, kTabW);
-        for (auto& e : s.children()) { window->addWidget(e.widget); filesW.push_back(e.widget); }
+        auto treeView = std::make_shared<skTreeView>(kTabX, kContentY, kTabW, 220);
+        treeView->setTooltip("Click chevron to expand \xc2\xb7 arrow keys navigate");
+
+        auto root = treeView->addRoot("skWidgets/");
+        auto core = treeView->addChild(root, "core/");
+            treeView->addChild(core, "skApp.h");
+            treeView->addChild(core, "skApp.cpp");
+        auto plat = treeView->addChild(root, "platform/");
+            treeView->addChild(plat, "skWindow.h");
+            treeView->addChild(plat, "skWindow.cpp");
+        auto rend = treeView->addChild(root, "rendering/");
+            treeView->addChild(rend, "skRenderContext.h");
+            treeView->addChild(rend, "skRenderContext.cpp");
+        auto ui = treeView->addChild(root, "ui/");
+        ui->expanded = false;
+            treeView->addChild(ui, "skWidget.h");
+            treeView->addChild(ui, "skButton.h/.cpp");
+            treeView->addChild(ui, "skLabel.h/.cpp");
+            treeView->addChild(ui, "skTextInput.h/.cpp");
+            treeView->addChild(ui, "skTextArea.h/.cpp");
+            treeView->addChild(ui, "skPasswordBox.h/.cpp");
+            treeView->addChild(ui, "skDropdown.h/.cpp");
+            treeView->addChild(ui, "skListBox.h/.cpp");
+            treeView->addChild(ui, "skTreeView.h/.cpp");
+            treeView->addChild(ui, "skTabBar.h/.cpp");
+            treeView->addChild(ui, "skToggle.h/.cpp");
+            treeView->addChild(ui, "skCard.h/.cpp");
+            treeView->addChild(ui, "skImage.h/.cpp");
+            treeView->addChild(ui, "skModal.h/.cpp");
+            treeView->addChild(ui, "skToast.h/.cpp");
+            treeView->addChild(ui, "skExpander.h/.cpp");
+            treeView->addChild(ui, "+ 12 more...");
+        treeView->addChild(root, "main.cpp");
+        treeView->addChild(root, "CMakeLists.txt");
+        treeView->addChild(root, "CLAUDE.md");
+        treeView->addChild(root, "IMPLEMENTATIONS.md");
+
+        treeView->setOnSelect([window](const std::string& label) {
+            window->showToast("Selected: " + label);
+        });
+
+        window->addWidget(treeView);
+        filesW.push_back(treeView);
     }
 
     // ---- Notes tab ----
     std::vector<std::shared_ptr<skWidget>> notesW;
-    std::shared_ptr<skTextArea> textArea;
     {
         skSizer s(skDirection::Column, 8);
         auto notesLabel = std::make_shared<skLabel>(0, 0, kTabW, 18, "Notes", 12.f);
         s.add(notesLabel, 18);
-        textArea = std::make_shared<skTextArea>(0, 0, kTabW, 184, "Type your notes here...");
+        auto textArea = std::make_shared<skTextArea>(0, 0, kTabW, 184, "Type your notes here...");
         s.add(textArea, 184);
         s.layout(kTabX, kContentY, kTabW);
         for (auto& e : s.children()) { window->addWidget(e.widget); notesW.push_back(e.widget); }
@@ -207,7 +254,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // ---- About tab — two animated expanders ----
     std::vector<std::shared_ptr<skWidget>> aboutW;
     {
-        // Expander 1: Framework (headerH=36, contentH=128, total=164)
         auto exp1 = std::make_shared<skExpander>(kTabX, kContentY, kTabW, 164, 36, "Framework");
         {
             const char* items[] = {
@@ -227,20 +273,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         window->addWidget(exp1);
         aboutW.push_back(exp1);
 
-        // Expander 2: Widget catalog (headerH=36, contentH=168, total=204) — collapsed by default
-        int exp2Y = kContentY + 164 + 10;
-        auto exp2 = std::make_shared<skExpander>(kTabX, exp2Y, kTabW, 204, 36, "Widget catalog");
+        auto exp2 = std::make_shared<skExpander>(kTabX, kContentY + 164 + 10, kTabW, 204, 36, "Widget catalog");
         exp2->setExpanded(false);
         {
             const char* items[] = {
                 "Button, Label, Badge, Link",
-                "TextInput, TextArea, NumberInput",
-                "CheckBox, RadioButton, Toggle",
-                "Slider, ProgressBar, Separator",
-                "Dropdown, ListBox, TabBar",
-                "ScrollPanel, Modal, Toast",
-                "Spinner, Expander, StatusBar",
-                "Panel, Sizer (Row / Column)",
+                "TextInput, PasswordBox, TextArea",
+                "NumberInput, CheckBox, RadioButton",
+                "Toggle, Slider, ProgressBar",
+                "Dropdown, ListBox, TreeView",
+                "TabBar, ScrollPanel, Expander",
+                "Modal, Toast, Spinner, StatusBar",
+                "Card, Image, Panel, Sizer",
             };
             int cy = 8;
             for (auto* txt : items) {
@@ -252,7 +296,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         aboutW.push_back(exp2);
     }
 
-    // ---- Tab visibility — Settings visible by default ----
+    // ---- Tab visibility — Settings active initially ----
     for (auto& ww : filesW)  ww->setVisible(false);
     for (auto& ww : notesW)  ww->setVisible(false);
     for (auto& ww : aboutW)  ww->setVisible(false);
@@ -269,12 +313,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // STATUS BAR
     // =========================================================================
     auto statusBar = std::make_shared<skStatusBar>(24, 612, 772, 22);
-    statusBar->setText("Ready", "24 widgets  \xc2\xb7  skWidgets alpha");
+    statusBar->setText("Ready", "28 widgets  \xc2\xb7  skWidgets alpha");
     window->addWidget(statusBar);
 
     nameInput->setOnChange([statusBar, hwnd](const std::string& t) {
         statusBar->setText(t.empty() ? "Ready" : "Name: " + t,
-                           "24 widgets  \xc2\xb7  skWidgets alpha");
+                           "28 widgets  \xc2\xb7  skWidgets alpha");
         InvalidateRect(hwnd, nullptr, FALSE);
     });
 
@@ -286,8 +330,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     window->addOverlay(modal);
 
     window->setOnResize([modal, statusBar](int nw, int nh) {
-        modal->w  = nw;
-        modal->h  = nh;
+        modal->w     = nw;
+        modal->h     = nh;
         statusBar->x = 24;
         statusBar->y = nh - 26;
         statusBar->w = nw - 48;

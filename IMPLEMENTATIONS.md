@@ -1,0 +1,156 @@
+# IMPLEMENTATIONS.md
+
+Tracks implementation status of every control listed in `UI Controls Catalog.md`.
+
+**Legend:** `[x]` = implemented · `[ ]` = not yet implemented · `[~]` = partially implemented or implemented under a different name
+
+---
+
+## Phase 1: Core Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skWidget | [x] | `ui/skWidget.h` — base class, position, size, visibility, focus, events, paint |
+| skPanel | [x] | `ui/skPanel.h/.cpp` — generic container with background and clipping |
+| skLabel | [x] | `ui/skLabel.h/.cpp` — single/multi-line text, font size |
+| skButton | [x] | `ui/skButton.h/.cpp` — hover/pressed states, smooth animation, click callback |
+| skImage | [x] | `ui/skImage.h/.cpp` — PNG/JPEG via Skia encoded data; Stretch/Fit/Fill/Center scale modes; placeholder when no file loaded |
+
+---
+
+## Phase 2: Input Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skTextBox | [x] | Implemented as `skTextInput` (`ui/skTextInput.h/.cpp`) — caret, cursor blink, VK navigation |
+| skTextArea | [x] | `ui/skTextArea.h/.cpp` — multi-line, scrolling, click-to-position cursor |
+| skPasswordBox | [x] | `ui/skPasswordBox.h/.cpp` — subclass of skTextInput with `setMasked(true)`; displays `*` characters |
+| skCheckBox | [x] | `ui/skCheckBox.h/.cpp` |
+| skRadioButton | [x] | `ui/skRadioButton.h/.cpp` — group support via `skRadioGroup` |
+| skToggleButton | [x] | Implemented as `skToggle` (`ui/skToggle.h/.cpp`) — animated thumb, on/off state |
+| skComboBox | [x] | Implemented as `skDropdown` (`ui/skDropdown.h/.cpp`) — overlay-based expand/collapse |
+| skSlider | [x] | `ui/skSlider.h/.cpp` — horizontal, drag, onChange callback |
+| skSpinBox | [x] | Implemented as `skNumberInput` (`ui/skNumberInput.h/.cpp`) — increment/decrement buttons, VK_UP/DOWN |
+
+---
+
+## Phase 3: Layout Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skBoxSizer | [x] | Implemented as `skSizer` (`ui/skSizer.h/.cpp`) — Row and Column layout, gap support |
+| skGridSizer | [ ] | Not implemented |
+| skFlexSizer | [ ] | Not implemented |
+| skStackPanel | [ ] | Not implemented |
+| skScrollView | [x] | Implemented as `skScrollPanel` (`ui/skScrollPanel.h/.cpp`) — vertical scroll, children in local coords, mouse wheel |
+
+---
+
+## Phase 4: Navigation Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skTabView | [x] | Implemented as `skTabBar` (`ui/skTabBar.h/.cpp`) — tab switching, accent underline, onChange callback |
+| skSideBar | [ ] | Not implemented |
+| skToolBar | [ ] | Not implemented |
+| skMenuBar | [ ] | Not implemented |
+| skStatusBar | [x] | `ui/skStatusBar.h/.cpp` — left + right text sections, accent stripe, resize-aware |
+| skBreadcrumb | [ ] | Not implemented |
+
+---
+
+## Phase 5: Data Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skListView | [x] | Implemented as `skListBox` (`ui/skListBox.h/.cpp`) — selection, VK_UP/DOWN, mouse wheel, scrollbar |
+| skTreeView | [x] | `ui/skTreeView.h/.cpp` — hierarchical nodes with unique_ptr ownership; expand/collapse via click or Left/Right keys; VK_UP/DOWN navigation; scrollbar; `addRoot` / `addChild` builder API |
+| skTableView | [ ] | Not implemented |
+| skPropertyGrid | [ ] | Not implemented |
+| skDataGrid | [ ] | Not implemented |
+
+---
+
+## Phase 6: Dialog Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skDialog | [x] | Implemented as `skModal` (`ui/skModal.h/.cpp`) — backdrop, centered dialog, Confirm/Cancel, Escape key |
+| skMessageBox | [ ] | Not implemented (skModal is a general-purpose modal, not a pre-built message box) |
+| skFileDialog | [ ] | Not implemented |
+| skColorDialog | [ ] | Not implemented |
+| skFontDialog | [ ] | Not implemented |
+| skDatePicker | [ ] | Not implemented |
+
+---
+
+## Phase 7: Modern Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skCard | [x] | `ui/skCard.h/.cpp` — rounded rect with multi-layer soft drop shadow; `setElevation()` controls shadow depth |
+| skDrawer | [ ] | Not implemented |
+| skNavigationRail | [ ] | Not implemented |
+| skToast | [x] | `ui/skToast.h/.cpp` — slide-in/hold/slide-out animation, managed by skWindow |
+| skPopover | [ ] | Not implemented |
+| skTooltip | [~] | Built into `skWindow` (hover delay + drawTooltip), not a standalone widget |
+| skProgressBar | [x] | `ui/skProgressBar.h/.cpp` — determinate; indeterminate not yet supported |
+| skCircularProgress | [x] | Implemented as `skSpinner` (`ui/skSpinner.h/.cpp`) — rotating arc, start/stop/runFor |
+| skChip | [ ] | Not implemented |
+| skAvatar | [ ] | Not implemented |
+| skBadge | [x] | `ui/skBadge.h/.cpp` — pill shape, auto-sizes to text, custom color |
+
+---
+
+## Phase 8: Developer Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skCodeEditor | [ ] | Not implemented |
+| skConsoleView | [ ] | Not implemented |
+| skInspector | [ ] | Not implemented |
+| skDockPanel | [ ] | Not implemented |
+| skSplitView | [ ] | Not implemented |
+
+---
+
+## Future Controls
+
+| Control | Status | Notes |
+|---------|--------|-------|
+| skChartView | [ ] | Not implemented |
+| skCanvasView | [ ] | Not implemented |
+| skVideoView | [ ] | Not implemented |
+| skWebView | [ ] | Not implemented |
+| skMarkdownView | [ ] | Not implemented |
+| skPdfView | [ ] | Not implemented |
+
+---
+
+## Extra Controls (implemented, not in catalog)
+
+These were added during development and have no catalog entry.
+
+| Control | File | Description |
+|---------|------|-------------|
+| skLink | `ui/skLink.h/.cpp` | Clickable underlined text with accent color and onClick callback |
+| skSeparator | `ui/skSeparator.h/.cpp` | Horizontal divider line |
+| skExpander | `ui/skExpander.h/.cpp` | Animated collapsible section with rotating chevron |
+| skTheme | `ui/skTheme.h/.cpp` | Light/Dark theme tokens, skGetTheme/skSetTheme, skLerpColor |
+
+---
+
+## Summary
+
+| Phase | Total | Implemented | Partial | Not Implemented |
+|-------|-------|-------------|---------|-----------------|
+| Phase 1: Core | 5 | 5 | 0 | 0 |
+| Phase 2: Input | 9 | 9 | 0 | 0 |
+| Phase 3: Layout | 5 | 2 | 0 | 3 |
+| Phase 4: Navigation | 6 | 2 | 0 | 4 |
+| Phase 5: Data | 5 | 2 | 0 | 3 |
+| Phase 6: Dialog | 6 | 1 | 0 | 5 |
+| Phase 7: Modern | 11 | 5 | 1 | 5 |
+| Phase 8: Developer | 5 | 0 | 0 | 5 |
+| Future | 6 | 0 | 0 | 6 |
+| **Total** | **58** | **26** | **1** | **31** |

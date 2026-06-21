@@ -18,6 +18,7 @@ public:
     const std::string& text() const { return m_text; }
     void setText(std::string t)     { m_text = std::move(t); m_cursor = m_text.size(); }
     void setOnChange(std::function<void(const std::string&)> cb) { m_onChange = std::move(cb); }
+    void setMasked(bool m)         { m_masked = m; }
 
 private:
     std::string  m_text;
@@ -26,5 +27,6 @@ private:
     bool         m_focused       = false;
     bool         m_cursorVisible = true;
     int          m_blinkCount    = 0;
+    bool         m_masked        = false;
     std::function<void(const std::string&)> m_onChange;
 };

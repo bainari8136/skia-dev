@@ -38,8 +38,10 @@ void skTextInput::Paint(SkCanvas* canvas) {
     canvas->save();
     canvas->clipRect(SkRect::MakeLTRB(textL, (float)y+2, textR, (float)y+(float)h-2));
 
-    const bool        empty   = m_text.empty();
-    const std::string& display = empty ? m_placeholder : m_text;
+    const bool  empty      = m_text.empty();
+    std::string maskedStr;
+    if (m_masked && !empty) maskedStr.assign(m_text.size(), '*');
+    const std::string& display = empty ? m_placeholder : (m_masked ? maskedStr : m_text);
 
     SkRect bounds;
     font.measureText(display.c_str(), display.size(), SkTextEncoding::kUTF8, &bounds);
@@ -53,7 +55,8 @@ void skTextInput::Paint(SkCanvas* canvas) {
     if (m_focused && m_cursorVisible) {
         float cx = textL;
         if (!empty) {
-            SkScalar adv = font.measureText(m_text.c_str(), m_cursor, SkTextEncoding::kUTF8, nullptr);
+            const std::string& measSrc = m_masked ? maskedStr : m_text;
+            SkScalar adv = font.measureText(measSrc.c_str(), m_cursor, SkTextEncoding::kUTF8, nullptr);
             cx = textL - bounds.left() + adv;
         }
         SkPaint cursor;
