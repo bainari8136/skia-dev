@@ -68,7 +68,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skTreeView | [x] | `ui/skTreeView.h/.cpp` — hierarchical nodes with unique_ptr ownership; expand/collapse via click or Left/Right keys; VK_UP/DOWN navigation; scrollbar; `addRoot` / `addChild` builder API |
 | skTableView | [x] | `ui/skTableView.h/.cpp` — headers, row selection, scrollbar, VK_UP/DOWN keyboard nav, focus border |
 | skPropertyGrid | [x] | `ui/skPropertyGrid.h/.cpp` — two-column key-value editor, click to select, click again (or Enter) to edit, char input |
-| skDataGrid | [ ] | Not implemented |
+| skDataGrid | [x] | `ui/skDataGrid.h/.cpp` — inline-editable cells, click-to-select, click-again to edit, Tab/Enter navigate, Escape cancel |
 
 ---
 
@@ -81,7 +81,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skFileDialog | [ ] | Not implemented |
 | skColorDialog | [x] | `ui/skColorDialog.h/.cpp` — HSV picker, SV square + hue bar + swatch, OK/Cancel, Escape, outside-click close |
 | skFontDialog | [ ] | Not implemented |
-| skDatePicker | [ ] | Not implemented |
+| skDatePicker | [x] | `ui/skDatePicker.h/.cpp` — calendar overlay, month/year nav, day grid, today/selected highlights, OK/Cancel |
 
 ---
 
@@ -107,7 +107,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | Control | Status | Notes |
 |---------|--------|-------|
 | skCodeEditor | [ ] | Not implemented |
-| skConsoleView | [ ] | Not implemented |
+| skConsoleView | [x] | `ui/skConsoleView.h/.cpp` — scrollable log output, dark bg, per-line colors, info/warn/error/success helpers, mouse wheel scroll |
 | skInspector | [ ] | Not implemented |
 | skDockPanel | [ ] | Not implemented |
 | skSplitView | [x] | `ui/skSplitView.h/.cpp` — horizontal split, draggable divider, min-width clamp, delegates events to children |
@@ -118,7 +118,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 
 | Control | Status | Notes |
 |---------|--------|-------|
-| skChartView | [ ] | Not implemented |
+| skChartView | [x] | `ui/skChartView.h/.cpp` — bar chart, auto Y-scaling, grid lines, value labels, hover highlight, title |
 | skCanvasView | [ ] | Not implemented |
 | skVideoView | [ ] | Not implemented |
 | skWebView | [ ] | Not implemented |
@@ -149,9 +149,9 @@ These were added during development and have no catalog entry.
 | Phase 2: Input | 9 | 9 | 0 | 0 |
 | Phase 3: Layout | 5 | 3 | 0 | 2 |
 | Phase 4: Navigation | 7 | 7 | 0 | 0 |
-| Phase 5: Data | 5 | 4 | 0 | 1 |
-| Phase 6: Dialog | 6 | 3 | 0 | 3 |
+| Phase 5: Data | 5 | 5 | 0 | 0 |
+| Phase 6: Dialog | 6 | 4 | 0 | 2 |
 | Phase 7: Modern | 11 | 9 | 1 | 1 |
-| Phase 8: Developer | 5 | 1 | 0 | 4 |
-| Future | 6 | 0 | 0 | 6 |
-| **Total** | **59** | **41** | **1** | **17** |
+| Phase 8: Developer | 5 | 2 | 0 | 3 |
+| Future | 6 | 1 | 0 | 5 |
+| **Total** | **59** | **45** | **1** | **13** |
