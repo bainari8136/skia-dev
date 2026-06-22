@@ -93,7 +93,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skDrawer | [x] | `ui/skDrawer.h/.cpp` — slide-in panel from left, animated offset, accent title bar, item list, Escape/outside-click close |
 | skToast | [x] | `ui/skToast.h/.cpp` — slide-in/hold/slide-out animation, managed by skWindow |
 | skPopover | [x] | `ui/skPopover.h/.cpp` — floating panel above anchor, downward arrow, title + text lines, Escape/outside-click close |
-| skTooltip | [~] | Built into `skWindow` (hover delay + drawTooltip), not a standalone widget |
+| skTooltip | [x] | `ui/skTooltip.h/.cpp` — standalone overlay, showAt(x,y,text,ticks), auto-dismiss via onTick(), passive (never consumes events) |
 | skProgressBar | [x] | `ui/skProgressBar.h/.cpp` — determinate; indeterminate not yet supported |
 | skCircularProgress | [x] | Implemented as `skSpinner` (`ui/skSpinner.h/.cpp`) — rotating arc, start/stop/runFor |
 | skChip | [x] | `ui/skChip.h/.cpp` — auto-sized pill label, accent-tinted bg, optional click callback, hover state |
@@ -109,7 +109,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skCodeEditor | [x] | `ui/skCodeEditor.h/.cpp` — read-only viewer, line numbers, C++ syntax highlighting (keywords/types/strings/comments/preprocessor), loadFile(), mouse-wheel scroll |
 | skConsoleView | [x] | `ui/skConsoleView.h/.cpp` — scrollable log output, dark bg, per-line colors, info/warn/error/success helpers, mouse wheel scroll |
 | skInspector | [x] | `ui/skInspector.h/.cpp` — live theme token inspector; swatch + name + ARGB hex per token; scroll, hover highlight |
-| skDockPanel | [ ] | Not implemented |
+| skDockPanel | [x] | `ui/skDockPanel.h/.cpp` — Left/Right/Top/Bottom/Fill dock modes; children consume from remaining rect in insertion order |
 | skSplitView | [x] | `ui/skSplitView.h/.cpp` — horizontal split, draggable divider, min-width clamp, delegates events to children |
 
 ---
@@ -120,10 +120,10 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 |---------|--------|-------|
 | skChartView | [x] | `ui/skChartView.h/.cpp` — bar chart, auto Y-scaling, grid lines, value labels, hover highlight, title |
 | skCanvasView | [x] | `ui/skCanvasView.h/.cpp` — custom paint callback surface, mouse down/move/up callbacks, clip + translate to local coords |
-| skVideoView | [ ] | Not implemented |
-| skWebView | [ ] | Not implemented |
+| skVideoView | [x] | `ui/skVideoView.h/.cpp` — play/pause/stop controls, seek bar, time display, simulated playback via onTick(); placeholder frame area |
+| skWebView | [x] | `ui/skWebView.h/.cpp` — URL bar with back/forward/go, editable URL input, navigate() API, history stack; placeholder content area |
 | skMarkdownView | [x] | `ui/skMarkdownView.h/.cpp` — H1/H2/H3, paragraphs (word-wrap), bullet lists, code blocks, horizontal rules; mouse-wheel scroll |
-| skPdfView | [ ] | Not implemented |
+| skPdfView | [x] | `ui/skPdfView.h/.cpp` — page navigation (prev/next/wheel), zoom, paper simulation with placeholder lines; loadFile/goToPage API |
 
 ---
 
@@ -151,7 +151,7 @@ These were added during development and have no catalog entry.
 | Phase 4: Navigation | 7 | 7 | 0 | 0 |
 | Phase 5: Data | 5 | 5 | 0 | 0 |
 | Phase 6: Dialog | 6 | 6 | 0 | 0 |
-| Phase 7: Modern | 11 | 9 | 1 | 1 |
-| Phase 8: Developer | 5 | 4 | 0 | 1 |
-| Future | 6 | 3 | 0 | 3 |
-| **Total** | **59** | **53** | **1** | **5** |
+| Phase 7: Modern | 11 | 10 | 0 | 1 |
+| Phase 8: Developer | 5 | 5 | 0 | 0 |
+| Future | 6 | 6 | 0 | 0 |
+| **Total** | **59** | **58** | **0** | **1** |

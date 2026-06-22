@@ -56,6 +56,11 @@
 #include "ui/skFontDialog.h"
 #include "ui/skMarkdownView.h"
 #include "ui/skInspector.h"
+#include "ui/skDockPanel.h"
+#include "ui/skTooltip.h"
+#include "ui/skVideoView.h"
+#include "ui/skWebView.h"
+#include "ui/skPdfView.h"
 #include <include/core/SkPaint.h>
 #include <include/core/SkPath.h>
 #include <vector>
@@ -96,6 +101,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
 
     auto fontDlg = std::make_shared<skFontDialog>(900, 700);
     window->addOverlay(fontDlg);
+
+    auto tooltip = std::make_shared<skTooltip>(900, 700);
+    window->addOverlay(tooltip);
 
     auto drawer = std::make_shared<skDrawer>(900, 700, 240);
     drawer->setTitle("Navigation");
@@ -258,6 +266,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     tabBar->addTab("Gallery");
     tabBar->addTab("Data");
     tabBar->addTab("Dev");
+    tabBar->addTab("Media");
     window->addWidget(tabBar);
 
     // ---- Settings tab ----
@@ -680,6 +689,44 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         window->addWidget(clearCvBtn); devW.push_back(clearCvBtn);
     }
 
+    // ---- Media tab — VideoView + DockPanel(WebView+PdfView) ----
+    std::vector<std::shared_ptr<skWidget>> mediaW;
+    {
+        // VideoView (top half)
+        auto vid = std::make_shared<skVideoView>(kTabX, kContentY, kTabW, 190);
+        vid->loadFile("C:\\sample\\demo.mp4");
+        vid->setDuration(183.f);
+        window->addWidget(vid); mediaW.push_back(vid);
+
+        // "Tooltip demo" button
+        auto ttBtn = std::make_shared<skButton>(kTabX, kContentY+198, 110, 24, "Show Tooltip");
+        ttBtn->setOnClick([tooltip, ttBtn, hwnd](){
+            tooltip->showAt(ttBtn->x + ttBtn->w/2, ttBtn->y, "Hello from skTooltip!", 25);
+            InvalidateRect(hwnd, nullptr, FALSE);
+        });
+        window->addWidget(ttBtn); mediaW.push_back(ttBtn);
+
+        // DockPanel (bottom half): WebView left, PdfView right, label top
+        constexpr int kDockY = kContentY + 230;
+        constexpr int kDockH = 320;
+        auto dock = std::make_shared<skDockPanel>(kTabX, kDockY, kTabW, kDockH);
+
+        auto dockLbl = std::make_shared<skLabel>(0,0,0,0,"Dock panel: Web (left)  ·  PDF (right)", 11.f);
+        auto webView = std::make_shared<skWebView>(0,0,0,0);
+        auto pdfView = std::make_shared<skPdfView>(0,0,0,0);
+
+        webView->navigate("https://skia.org/docs/");
+        pdfView->setPageCount(12);
+        pdfView->loadFile("C:\\sample\\report.pdf");
+
+        dock->addChild(dockLbl, skDockPanel::Dock::Top,  20);
+        dock->addChild(pdfView, skDockPanel::Dock::Right, kTabW/2 - 4);
+        dock->addChild(webView, skDockPanel::Dock::Fill);
+        dock->layout();
+
+        window->addWidget(dock); mediaW.push_back(dock);
+    }
+
     // =========================================================================
     // Tab visibility
     // =========================================================================
@@ -689,6 +736,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     for (auto& ww : galleryW) ww->setVisible(false);
     for (auto& ww : dataW)    ww->setVisible(false);
     for (auto& ww : devW)     ww->setVisible(false);
+    for (auto& ww : mediaW)   ww->setVisible(false);
 
     tabBar->setOnChange([=](int idx, const std::string&){
         for (auto& ww : settingsW) ww->setVisible(idx==0);
@@ -698,6 +746,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         for (auto& ww : galleryW) ww->setVisible(idx==4);
         for (auto& ww : dataW)    ww->setVisible(idx==5);
         for (auto& ww : devW)     ww->setVisible(idx==6);
+        for (auto& ww : mediaW)   ww->setVisible(idx==7);
         InvalidateRect(hwnd, nullptr, FALSE);
     });
 
@@ -705,11 +754,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // STATUS BAR
     // =========================================================================
     auto statusBar = std::make_shared<skStatusBar>(24, 672, 852, 22);
-    statusBar->setText("Ready", "skWidgets alpha  \xc2\xb7  Batch 14  \xc2\xb7  53 widgets");
+    statusBar->setText("Ready", "skWidgets alpha  \xc2\xb7  Batch 15  \xc2\xb7  58 widgets");
     window->addWidget(statusBar);
 
     nameInput->setOnChange([statusBar, hwnd](const std::string& t){
-        statusBar->setText(t.empty() ? "Ready" : "Name: " + t, "skWidgets alpha  \xc2\xb7  Batch 14");
+        statusBar->setText(t.empty() ? "Ready" : "Name: " + t, "skWidgets alpha  \xc2\xb7  Batch 15");
         InvalidateRect(hwnd, nullptr, FALSE);
     });
 
@@ -720,13 +769,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     modal->setVisible(false);
     window->addOverlay(modal);
 
-    window->setOnResize([modal,statusBar,msgBox,colorDlg,datePicker,fileDlg,fontDlg,drawer,menuBar](int nw,int nh){
+    window->setOnResize([modal,statusBar,msgBox,colorDlg,datePicker,fileDlg,fontDlg,tooltip,drawer,menuBar](int nw,int nh){
         modal->w=nw;      modal->h=nh;
         msgBox->w=nw;     msgBox->h=nh;
         colorDlg->w=nw;   colorDlg->h=nh;
         datePicker->w=nw; datePicker->h=nh;
         fileDlg->w=nw;    fileDlg->h=nh;
         fontDlg->w=nw;    fontDlg->h=nh;
+        tooltip->w=nw;    tooltip->h=nh;
         drawer->w=nw;     drawer->h=nh;
         menuBar->w=nw;
         statusBar->x=24; statusBar->y=nh-26; statusBar->w=nw-48;
