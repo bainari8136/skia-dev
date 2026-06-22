@@ -75,6 +75,10 @@ set(SOURCES
     ui/skCanvasView.cpp
     ui/skCodeEditor.cpp
     ui/skFileDialog.cpp
+    ui/skStackPanel.cpp
+    ui/skFontDialog.cpp
+    ui/skMarkdownView.cpp
+    ui/skInspector.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})

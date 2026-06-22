@@ -52,6 +52,10 @@
 #include "ui/skCanvasView.h"
 #include "ui/skCodeEditor.h"
 #include "ui/skFileDialog.h"
+#include "ui/skStackPanel.h"
+#include "ui/skFontDialog.h"
+#include "ui/skMarkdownView.h"
+#include "ui/skInspector.h"
 #include <include/core/SkPaint.h>
 #include <include/core/SkPath.h>
 #include <vector>
@@ -89,6 +93,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     auto fileDlg = std::make_shared<skFileDialog>(900, 700);
     fileDlg->setVisible(false);
     window->addOverlay(fileDlg);
+
+    auto fontDlg = std::make_shared<skFontDialog>(900, 700);
+    window->addOverlay(fontDlg);
 
     auto drawer = std::make_shared<skDrawer>(900, 700, 240);
     drawer->setTitle("Navigation");
@@ -353,7 +360,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // ---- About tab ----
     std::vector<std::shared_ptr<skWidget>> aboutW;
     {
-        auto exp1 = std::make_shared<skExpander>(kTabX, kContentY, kTabW, 164, 36, "Framework");
+        auto exp1 = std::make_shared<skExpander>(kTabX, kContentY, kTabW, 170, 36, "Framework");
         {
             const char* items[] = { "Renderer: Skia CPU raster","Platform: Win32 x64",
                 "C++ standard: C++17 (MSVC)","Themes: Light / Dark",
@@ -363,28 +370,30 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         }
         window->addWidget(exp1); aboutW.push_back(exp1);
 
-        auto exp2 = std::make_shared<skExpander>(kTabX, kContentY+164+10, kTabW, 284, 36, "Widget catalog (49 implemented)");
-        exp2->setExpanded(false);
-        {
-            const char* items[] = {
-                "Button, Label, Badge, Link, Chip",
-                "Avatar, TextInput, PasswordBox, TextArea",
-                "NumberInput, CheckBox, RadioButton, Toggle",
-                "Slider, ProgressBar, Spinner, Separator",
-                "Dropdown, ListBox, TreeView, TabBar",
-                "TableView, PropertyGrid, DataGrid, SplitView",
-                "ScrollPanel, Expander, Card, Image",
-                "Modal, MessageBox, Toast, Popover",
-                "MenuBar, Menu, ToolBar, SideBar",
-                "Drawer, NavigationRail, ColorDialog",
-                "DatePicker, ChartView, ConsoleView",
-                "Breadcrumb, GridSizer, FlexSizer, StatusBar",
-                "CanvasView, CodeEditor, FileDialog"
-            };
-            int cy = 8;
-            for (auto* txt : items) { exp2->addChild(std::make_shared<skLabel>(12,cy,kTabW-24,16,txt,11.f)); cy+=20; }
-        }
-        window->addWidget(exp2); aboutW.push_back(exp2);
+        auto mdView = std::make_shared<skMarkdownView>(kTabX, kContentY+174, kTabW, 290);
+        mdView->setContent(
+            "## Widget Catalog\n"
+            "### Phase 1-2: Core & Input\n"
+            "- Button, Label, Badge, Link, Chip\n"
+            "- Avatar, TextInput, PasswordBox, TextArea\n"
+            "- NumberInput, CheckBox, RadioButton, Toggle\n"
+            "- Slider, ProgressBar, Spinner, Separator\n"
+            "### Phase 3-4: Layout & Navigation\n"
+            "- StackPanel, ScrollPanel, GridSizer, FlexSizer\n"
+            "- Dropdown, TabBar, SideBar, NavigationRail\n"
+            "- ToolBar, MenuBar, Menu, StatusBar, Breadcrumb\n"
+            "### Phase 5-6: Data & Dialogs\n"
+            "- ListBox, TreeView, TableView, PropertyGrid, DataGrid\n"
+            "- Modal, MessageBox, FileDialog, ColorDialog\n"
+            "- FontDialog, DatePicker\n"
+            "### Phase 7-8: Modern & Developer\n"
+            "- Card, Drawer, Toast, Popover, SplitView\n"
+            "- ChartView, ConsoleView, CanvasView\n"
+            "- CodeEditor, Inspector, MarkdownView\n"
+            "---\n"
+            "**Total: 53 / 59 implemented**\n"
+        );
+        window->addWidget(mdView); aboutW.push_back(mdView);
     }
 
     // ---- Gallery tab ----
@@ -498,6 +507,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         window->addWidget(browseBtn);   galleryW.push_back(browseBtn);
         window->addWidget(dateResult);  galleryW.push_back(dateResult);
         window->addWidget(fileResult);  galleryW.push_back(fileResult);
+
+        // Font dialog row
+        auto fontResult  = std::make_shared<skLabel>(kTabX+104, kContentY+356, kTabW-104, 26, "Segoe UI 14pt", 11.f);
+        auto pickFontBtn = std::make_shared<skButton>(kTabX,     kContentY+356, 96, 26, "Pick Font");
+        pickFontBtn->setOnClick([fontDlg, fontResult, hwnd](){
+            skFontSelection init;
+            fontDlg->show(init);
+            fontDlg->setOnConfirm([fontResult, hwnd](skFontSelection sel){
+                std::string info = sel.family + "  " + std::to_string(sel.size) + "pt";
+                if (sel.bold)   info += " Bold";
+                if (sel.italic) info += " Italic";
+                fontResult->setText(info);
+                InvalidateRect(hwnd, nullptr, FALSE);
+            });
+            InvalidateRect(hwnd, nullptr, FALSE);
+        });
+        window->addWidget(pickFontBtn); galleryW.push_back(pickFontBtn);
+        window->addWidget(fontResult);  galleryW.push_back(fontResult);
     }
 
     // ---- Data tab ----
@@ -566,12 +593,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         chart->addBar("Ph7",9); chart->addBar("Ph8",2);
 
         devCon->appendLine("cmake --build build --config Release", 0xFF888888);
-        devCon->success("Build: main.exe (Batch 13)");
-        devCon->info("skFlexSizer    OK");
-        devCon->info("skCanvasView   OK");
-        devCon->info("skCodeEditor   OK");
-        devCon->info("skFileDialog   OK");
-        devCon->appendLine("Total: 49 / 59 implemented", 0xFFCCCCCC);
+        devCon->success("Build: main.exe (Batch 14)");
+        devCon->info("skStackPanel   OK");
+        devCon->info("skFontDialog   OK");
+        devCon->info("skMarkdownView OK");
+        devCon->info("skInspector    OK");
+        devCon->appendLine("Total: 53 / 59 implemented", 0xFFCCCCCC);
 
         // Console action buttons
         auto infoBtn  = std::make_shared<skButton>(kTabX,       kContentY+208,80,24,"Info");
@@ -584,15 +611,22 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         clrBtn->setOnClick([devCon,hwnd](){  devCon->clear(); InvalidateRect(hwnd,nullptr,FALSE); });
         for (auto& b:{infoBtn,warnBtn,errBtn,clrBtn}) { window->addWidget(b); devW.push_back(b); }
 
-        // Canvas draw area
-        auto canvasLbl = std::make_shared<skLabel>(kTabX,kContentY+240,200,18,"Draw canvas (drag to paint)",12.f);
+        // Canvas draw area (left) + Inspector (right)
+        constexpr int kCvW = 258;
+        auto canvasLbl = std::make_shared<skLabel>(kTabX,kContentY+240,kCvW,18,"Draw canvas (drag to paint)",12.f);
         window->addWidget(canvasLbl); devW.push_back(canvasLbl);
+
+        auto insLbl = std::make_shared<skLabel>(kTabX+kCvW+8,kContentY+240,kTabW-kCvW-8,18,"Theme Inspector",12.f);
+        window->addWidget(insLbl); devW.push_back(insLbl);
+
+        auto inspector = std::make_shared<skInspector>(kTabX+kCvW+8, kContentY+260, kTabW-kCvW-8, 180);
+        window->addWidget(inspector); devW.push_back(inspector);
 
         // Strokes stored in a shared vector so lambdas capture it safely
         auto strokes = std::make_shared<std::vector<std::vector<SkPoint>>>();
         auto strokeColors = std::make_shared<std::vector<SkColor>>();
 
-        auto cv = std::make_shared<skCanvasView>(kTabX, kContentY+260, kTabW, 160);
+        auto cv = std::make_shared<skCanvasView>(kTabX, kContentY+260, kCvW, 160);
         cv->setOnPaint([strokes, strokeColors](SkCanvas* canvas, int cw, int ch){
             // Grid background
             SkPaint gridP; gridP.setColor(SkColorSetARGB(30,100,100,255));
@@ -671,11 +705,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // STATUS BAR
     // =========================================================================
     auto statusBar = std::make_shared<skStatusBar>(24, 672, 852, 22);
-    statusBar->setText("Ready", "skWidgets alpha  \xc2\xb7  Batch 13  \xc2\xb7  49 widgets");
+    statusBar->setText("Ready", "skWidgets alpha  \xc2\xb7  Batch 14  \xc2\xb7  53 widgets");
     window->addWidget(statusBar);
 
     nameInput->setOnChange([statusBar, hwnd](const std::string& t){
-        statusBar->setText(t.empty() ? "Ready" : "Name: " + t, "skWidgets alpha  \xc2\xb7  Batch 13");
+        statusBar->setText(t.empty() ? "Ready" : "Name: " + t, "skWidgets alpha  \xc2\xb7  Batch 14");
         InvalidateRect(hwnd, nullptr, FALSE);
     });
 
@@ -686,12 +720,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     modal->setVisible(false);
     window->addOverlay(modal);
 
-    window->setOnResize([modal,statusBar,msgBox,colorDlg,datePicker,fileDlg,drawer,menuBar](int nw,int nh){
+    window->setOnResize([modal,statusBar,msgBox,colorDlg,datePicker,fileDlg,fontDlg,drawer,menuBar](int nw,int nh){
         modal->w=nw;      modal->h=nh;
         msgBox->w=nw;     msgBox->h=nh;
         colorDlg->w=nw;   colorDlg->h=nh;
         datePicker->w=nw; datePicker->h=nh;
         fileDlg->w=nw;    fileDlg->h=nh;
+        fontDlg->w=nw;    fontDlg->h=nh;
         drawer->w=nw;     drawer->h=nh;
         menuBar->w=nw;
         statusBar->x=24; statusBar->y=nh-26; statusBar->w=nw-48;

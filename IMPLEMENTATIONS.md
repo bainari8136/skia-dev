@@ -41,7 +41,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skBoxSizer | [x] | Implemented as `skSizer` (`ui/skSizer.h/.cpp`) — Row and Column layout, gap support |
 | skGridSizer | [x] | `ui/skGridSizer.h/.cpp` — N-column grid, auto row heights, flows left-to-right top-to-bottom |
 | skFlexSizer | [x] | `ui/skFlexSizer.h/.cpp` — Row/Column layout with fixed-size and proportional flex items |
-| skStackPanel | [ ] | Not implemented |
+| skStackPanel | [x] | `ui/skStackPanel.h/.cpp` — vertical/horizontal child stacking, auto-sizes height, optional bg/border/radius |
 | skScrollView | [x] | Implemented as `skScrollPanel` (`ui/skScrollPanel.h/.cpp`) — vertical scroll, children in local coords, mouse wheel |
 
 ---
@@ -80,7 +80,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skMessageBox | [x] | `ui/skMessageBox.h/.cpp` — Info/Warning/Error types, icon circle, colored top bar, OK button, Escape key |
 | skFileDialog | [x] | `ui/skFileDialog.h/.cpp` — real Win32 directory listing, navigate dirs, select files, up button, scrollbar |
 | skColorDialog | [x] | `ui/skColorDialog.h/.cpp` — HSV picker, SV square + hue bar + swatch, OK/Cancel, Escape, outside-click close |
-| skFontDialog | [ ] | Not implemented |
+| skFontDialog | [x] | `ui/skFontDialog.h/.cpp` — Win32 EnumFontFamiliesEx font list, preview area, bold/italic checkboxes, size +/-, OK/Cancel |
 | skDatePicker | [x] | `ui/skDatePicker.h/.cpp` — calendar overlay, month/year nav, day grid, today/selected highlights, OK/Cancel |
 
 ---
@@ -108,7 +108,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 |---------|--------|-------|
 | skCodeEditor | [x] | `ui/skCodeEditor.h/.cpp` — read-only viewer, line numbers, C++ syntax highlighting (keywords/types/strings/comments/preprocessor), loadFile(), mouse-wheel scroll |
 | skConsoleView | [x] | `ui/skConsoleView.h/.cpp` — scrollable log output, dark bg, per-line colors, info/warn/error/success helpers, mouse wheel scroll |
-| skInspector | [ ] | Not implemented |
+| skInspector | [x] | `ui/skInspector.h/.cpp` — live theme token inspector; swatch + name + ARGB hex per token; scroll, hover highlight |
 | skDockPanel | [ ] | Not implemented |
 | skSplitView | [x] | `ui/skSplitView.h/.cpp` — horizontal split, draggable divider, min-width clamp, delegates events to children |
 
@@ -122,7 +122,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skCanvasView | [x] | `ui/skCanvasView.h/.cpp` — custom paint callback surface, mouse down/move/up callbacks, clip + translate to local coords |
 | skVideoView | [ ] | Not implemented |
 | skWebView | [ ] | Not implemented |
-| skMarkdownView | [ ] | Not implemented |
+| skMarkdownView | [x] | `ui/skMarkdownView.h/.cpp` — H1/H2/H3, paragraphs (word-wrap), bullet lists, code blocks, horizontal rules; mouse-wheel scroll |
 | skPdfView | [ ] | Not implemented |
 
 ---
@@ -147,11 +147,11 @@ These were added during development and have no catalog entry.
 |-------|-------|-------------|---------|-----------------|
 | Phase 1: Core | 5 | 5 | 0 | 0 |
 | Phase 2: Input | 9 | 9 | 0 | 0 |
-| Phase 3: Layout | 5 | 4 | 0 | 1 |
+| Phase 3: Layout | 5 | 5 | 0 | 0 |
 | Phase 4: Navigation | 7 | 7 | 0 | 0 |
 | Phase 5: Data | 5 | 5 | 0 | 0 |
-| Phase 6: Dialog | 6 | 5 | 0 | 1 |
+| Phase 6: Dialog | 6 | 6 | 0 | 0 |
 | Phase 7: Modern | 11 | 9 | 1 | 1 |
-| Phase 8: Developer | 5 | 3 | 0 | 2 |
-| Future | 6 | 2 | 0 | 4 |
-| **Total** | **59** | **49** | **1** | **9** |
+| Phase 8: Developer | 5 | 4 | 0 | 1 |
+| Future | 6 | 3 | 0 | 3 |
+| **Total** | **59** | **53** | **1** | **5** |
