@@ -60,6 +60,13 @@ set(SOURCES
     ui/skMenu.cpp
     ui/skMenuBar.cpp
     ui/skMessageBox.cpp
+    ui/skGridSizer.cpp
+    ui/skTableView.cpp
+    ui/skPropertyGrid.cpp
+    ui/skDrawer.cpp
+    ui/skNavigationRail.cpp
+    ui/skSplitView.cpp
+    ui/skColorDialog.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})

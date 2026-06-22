@@ -39,7 +39,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | Control | Status | Notes |
 |---------|--------|-------|
 | skBoxSizer | [x] | Implemented as `skSizer` (`ui/skSizer.h/.cpp`) — Row and Column layout, gap support |
-| skGridSizer | [ ] | Not implemented |
+| skGridSizer | [x] | `ui/skGridSizer.h/.cpp` — N-column grid, auto row heights, flows left-to-right top-to-bottom |
 | skFlexSizer | [ ] | Not implemented |
 | skStackPanel | [ ] | Not implemented |
 | skScrollView | [x] | Implemented as `skScrollPanel` (`ui/skScrollPanel.h/.cpp`) — vertical scroll, children in local coords, mouse wheel |
@@ -52,6 +52,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 |---------|--------|-------|
 | skTabView | [x] | Implemented as `skTabBar` (`ui/skTabBar.h/.cpp`) — tab switching, accent underline, onChange callback |
 | skSideBar | [x] | `ui/skSideBar.h/.cpp` — vertical nav list, active indicator bar, hover highlight, onChange callback |
+| skNavigationRail | [x] | `ui/skNavigationRail.h/.cpp` — vertical rail, icon glyph + label, pill highlight for active item, onChange callback |
 | skToolBar | [x] | `ui/skToolBar.h/.cpp` — horizontal button strip with separators, hover highlight, click callbacks |
 | skMenuBar | [x] | `ui/skMenuBar.h/.cpp` — title buttons, hover/active tint, opens skMenu overlays; keyboard Escape closes open menu |
 | skStatusBar | [x] | `ui/skStatusBar.h/.cpp` — left + right text sections, accent stripe, resize-aware |
@@ -65,8 +66,8 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 |---------|--------|-------|
 | skListView | [x] | Implemented as `skListBox` (`ui/skListBox.h/.cpp`) — selection, VK_UP/DOWN, mouse wheel, scrollbar |
 | skTreeView | [x] | `ui/skTreeView.h/.cpp` — hierarchical nodes with unique_ptr ownership; expand/collapse via click or Left/Right keys; VK_UP/DOWN navigation; scrollbar; `addRoot` / `addChild` builder API |
-| skTableView | [ ] | Not implemented |
-| skPropertyGrid | [ ] | Not implemented |
+| skTableView | [x] | `ui/skTableView.h/.cpp` — headers, row selection, scrollbar, VK_UP/DOWN keyboard nav, focus border |
+| skPropertyGrid | [x] | `ui/skPropertyGrid.h/.cpp` — two-column key-value editor, click to select, click again (or Enter) to edit, char input |
 | skDataGrid | [ ] | Not implemented |
 
 ---
@@ -78,7 +79,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skDialog | [x] | Implemented as `skModal` (`ui/skModal.h/.cpp`) — backdrop, centered dialog, Confirm/Cancel, Escape key |
 | skMessageBox | [x] | `ui/skMessageBox.h/.cpp` — Info/Warning/Error types, icon circle, colored top bar, OK button, Escape key |
 | skFileDialog | [ ] | Not implemented |
-| skColorDialog | [ ] | Not implemented |
+| skColorDialog | [x] | `ui/skColorDialog.h/.cpp` — HSV picker, SV square + hue bar + swatch, OK/Cancel, Escape, outside-click close |
 | skFontDialog | [ ] | Not implemented |
 | skDatePicker | [ ] | Not implemented |
 
@@ -89,8 +90,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | Control | Status | Notes |
 |---------|--------|-------|
 | skCard | [x] | `ui/skCard.h/.cpp` — rounded rect with multi-layer soft drop shadow; `setElevation()` controls shadow depth |
-| skDrawer | [ ] | Not implemented |
-| skNavigationRail | [ ] | Not implemented |
+| skDrawer | [x] | `ui/skDrawer.h/.cpp` — slide-in panel from left, animated offset, accent title bar, item list, Escape/outside-click close |
 | skToast | [x] | `ui/skToast.h/.cpp` — slide-in/hold/slide-out animation, managed by skWindow |
 | skPopover | [x] | `ui/skPopover.h/.cpp` — floating panel above anchor, downward arrow, title + text lines, Escape/outside-click close |
 | skTooltip | [~] | Built into `skWindow` (hover delay + drawTooltip), not a standalone widget |
@@ -110,7 +110,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skConsoleView | [ ] | Not implemented |
 | skInspector | [ ] | Not implemented |
 | skDockPanel | [ ] | Not implemented |
-| skSplitView | [ ] | Not implemented |
+| skSplitView | [x] | `ui/skSplitView.h/.cpp` — horizontal split, draggable divider, min-width clamp, delegates events to children |
 
 ---
 
@@ -147,11 +147,11 @@ These were added during development and have no catalog entry.
 |-------|-------|-------------|---------|-----------------|
 | Phase 1: Core | 5 | 5 | 0 | 0 |
 | Phase 2: Input | 9 | 9 | 0 | 0 |
-| Phase 3: Layout | 5 | 2 | 0 | 3 |
-| Phase 4: Navigation | 6 | 5 | 0 | 1 |
-| Phase 5: Data | 5 | 2 | 0 | 3 |
-| Phase 6: Dialog | 6 | 2 | 0 | 4 |
-| Phase 7: Modern | 11 | 8 | 1 | 2 |
-| Phase 8: Developer | 5 | 0 | 0 | 5 |
+| Phase 3: Layout | 5 | 3 | 0 | 2 |
+| Phase 4: Navigation | 7 | 7 | 0 | 0 |
+| Phase 5: Data | 5 | 4 | 0 | 1 |
+| Phase 6: Dialog | 6 | 3 | 0 | 3 |
+| Phase 7: Modern | 11 | 9 | 1 | 1 |
+| Phase 8: Developer | 5 | 1 | 0 | 4 |
 | Future | 6 | 0 | 0 | 6 |
-| **Total** | **58** | **33** | **1** | **24** |
+| **Total** | **59** | **41** | **1** | **17** |
