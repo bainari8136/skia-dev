@@ -29,6 +29,7 @@
 #include "ui/skTreeView.h"
 #include "ui/skSizer.h"
 #include "ui/skGridSizer.h"
+#include "ui/skFlexSizer.h"
 #include "ui/skChip.h"
 #include "ui/skAvatar.h"
 #include "ui/skToolBar.h"
@@ -48,11 +49,19 @@
 #include "ui/skDatePicker.h"
 #include "ui/skConsoleView.h"
 #include "ui/skDataGrid.h"
+#include "ui/skCanvasView.h"
+#include "ui/skCodeEditor.h"
+#include "ui/skFileDialog.h"
+#include <include/core/SkPaint.h>
+#include <include/core/SkPath.h>
 #include <vector>
 #include <memory>
 #include <string>
 
 static void addAll(skWindow* win, const skSizer& sizer) {
+    for (auto& e : sizer.children()) win->addWidget(e.widget);
+}
+static void addAllFlex(skWindow* win, const skFlexSizer& sizer) {
     for (auto& e : sizer.children()) win->addWidget(e.widget);
 }
 
@@ -76,6 +85,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     auto datePicker = std::make_shared<skDatePicker>(900, 700);
     datePicker->setVisible(false);
     window->addOverlay(datePicker);
+
+    auto fileDlg = std::make_shared<skFileDialog>(900, 700);
+    fileDlg->setVisible(false);
+    window->addOverlay(fileDlg);
 
     auto drawer = std::make_shared<skDrawer>(900, 700, 240);
     drawer->setTitle("Navigation");
@@ -102,7 +115,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     auto helpMenu = std::make_shared<skMenu>();
     helpMenu->addItem("About skWidgets", [msgBox, hwnd]() {
         msgBox->show("skWidgets",
-            "A Skia + Win32 UI framework.\nBatch 12  \xe2\x80\x94  C++17, MSVC x64.",
+            "A Skia + Win32 UI framework.\nBatch 13  \xe2\x80\x94  C++17, MSVC x64.",
             skMessageType::Info);
         InvalidateRect(hwnd, nullptr, FALSE);
     });
@@ -183,7 +196,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     auto slider = std::make_shared<skSlider>(0,0,320,26);
     slider->setValue(0.65f);
     slider->setOnChange([volLabel, progBar, hwnd](float v) {
-        volLabel->setText("Volume: " + std::to_string((int)(v * 100)) + "%");
+        volLabel->setText("Volume: " + std::to_string((int)(v*100)) + "%");
         progBar->setValue(v);
         InvalidateRect(hwnd, nullptr, FALSE);
     });
@@ -196,18 +209,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     auto rb2 = std::make_shared<skRadioButton>(0,0,320,28,"Mentions only",     radioGroup.get());
     auto rb3 = std::make_shared<skRadioButton>(0,0,320,28,"None",              radioGroup.get());
     radioGroup->select(rb1.get());
-    col.add(rb1, 28); col.add(rb2, 28); col.add(rb3, 28);
+    col.add(rb1,28); col.add(rb2,28); col.add(rb3,28);
 
     auto prioLabel = std::make_shared<skLabel>(0,0,320,18,"Priority (1-10)", 12.f);
     col.add(prioLabel, 18);
-    auto prioInput = std::make_shared<skNumberInput>(0,0,160,34, 1, 10, 5);
+    auto prioInput = std::make_shared<skNumberInput>(0,0,160,34,1,10,5);
     prioInput->setTooltip("Arrow keys also work when focused");
     col.add(prioInput, 34);
 
     auto saveBtn   = std::make_shared<skButton>(0,0,110,38,"Save");
     auto cancelBtn = std::make_shared<skButton>(0,0,110,38,"Cancel");
     saveBtn->setTooltip("Save your changes");
-    cancelBtn->setTooltip("Discard changes and close");
+    cancelBtn->setTooltip("Close");
     col.add(saveBtn, 38);
     col.layout(50, 130, 320);
 
@@ -216,8 +229,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
 
     auto spinner = std::make_shared<skSpinner>(
         cancelBtn->x + cancelBtn->w + 12,
-        cancelBtn->y + (cancelBtn->h - 28) / 2, 28);
-    spinner->setTooltip("Saving...");
+        cancelBtn->y + (cancelBtn->h - 28)/2, 28);
 
     addAll(window, col);
     window->addWidget(cancelBtn);
@@ -248,13 +260,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         skSizer s(skDirection::Column, 10);
         auto tog1 = std::make_shared<skToggle>(0,0,kTabW,28,"Enable notifications");
         tog1->setChecked(true);
-        tog1->setTooltip("Show desktop and email notifications");
         auto tog2 = std::make_shared<skToggle>(0,0,kTabW,28,"Start on login");
         auto chk3 = std::make_shared<skCheckBox>(0,0,kTabW,28,"Send usage statistics");
         s.add(tog1,28); s.add(tog2,28); s.add(chk3,28);
 
-        auto themeLabel = std::make_shared<skLabel>(0,0,kTabW,18,"Accent colour",12.f);
-        s.add(themeLabel,18);
+        auto thLbl = std::make_shared<skLabel>(0,0,kTabW,18,"Accent colour",12.f);
+        s.add(thLbl,18);
         dropdown = std::make_shared<skDropdown>(0,0,kTabW,36);
         dropdown->addOption("Blue   (default)");
         dropdown->addOption("Purple");
@@ -262,11 +273,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         dropdown->addOption("Orange");
         s.add(dropdown,36);
 
-        auto sep2      = std::make_shared<skSeparator>(0,0,kTabW,1);
-        auto passLabel = std::make_shared<skLabel>(0,0,kTabW,18,"Account password",12.f);
-        auto passInput = std::make_shared<skPasswordBox>(0,0,kTabW,36,"Enter password...");
-        passInput->setTooltip("Characters are masked \xe2\x80\x94 Tab to next field");
-        s.add(sep2,1); s.add(passLabel,18); s.add(passInput,36);
+        auto sep2   = std::make_shared<skSeparator>(0,0,kTabW,1);
+        auto pasLbl = std::make_shared<skLabel>(0,0,kTabW,18,"Account password",12.f);
+        auto pasInp = std::make_shared<skPasswordBox>(0,0,kTabW,36,"Enter password...");
+        s.add(sep2,1); s.add(pasLbl,18); s.add(pasInp,36);
 
         s.layout(kTabX, kContentY, kTabW);
         for (auto& e : s.children()) { window->addWidget(e.widget); settingsW.push_back(e.widget); }
@@ -283,65 +293,61 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         skSetTheme(th); InvalidateRect(hwnd, nullptr, FALSE);
     });
 
-    // ---- Files tab ----
+    // ---- Files tab — code editor showing skWidget.h ----
     std::vector<std::shared_ptr<skWidget>> filesW;
     {
-        auto treeView = std::make_shared<skTreeView>(kTabX, kContentY, kTabW, 240);
-        treeView->setTooltip("Click chevron to expand \xc2\xb7 arrow keys navigate");
+        auto topRow = std::make_shared<skBreadcrumb>(kTabX, kContentY, kTabW, 24);
+        topRow->addCrumb("skia-dev"); topRow->addCrumb("ui"); topRow->addCrumb("skWidget.h");
+        window->addWidget(topRow); filesW.push_back(topRow);
 
-        auto root = treeView->addRoot("skWidgets/");
-        auto core = treeView->addChild(root, "core/");
-            treeView->addChild(core,"skApp.h"); treeView->addChild(core,"skApp.cpp");
-        auto plat = treeView->addChild(root,"platform/");
-            treeView->addChild(plat,"skWindow.h"); treeView->addChild(plat,"skWindow.cpp");
-        auto rend = treeView->addChild(root,"rendering/");
-            treeView->addChild(rend,"skRenderContext.h"); treeView->addChild(rend,"skRenderContext.cpp");
-        auto ui = treeView->addChild(root,"ui/");
-        ui->expanded = false;
-            treeView->addChild(ui,"skWidget.h");
-            treeView->addChild(ui,"skButton / Label / Badge / Link / Chip");
-            treeView->addChild(ui,"skTextInput / PasswordBox / TextArea");
-            treeView->addChild(ui,"skDropdown / ListBox / TreeView");
-            treeView->addChild(ui,"skTableView / PropertyGrid / DataGrid");
-            treeView->addChild(ui,"skMenuBar / Menu / ToolBar");
-            treeView->addChild(ui,"skDrawer / NavigationRail / SideBar");
-            treeView->addChild(ui,"skSplitView / ColorDialog / DatePicker");
-            treeView->addChild(ui,"skChartView / ConsoleView");
-        treeView->addChild(root,"main.cpp");
-        treeView->addChild(root,"CMakeLists.txt");
+        auto editor = std::make_shared<skCodeEditor>(kTabX, kContentY+30, kTabW, 370);
+        editor->setLanguage("cpp");
+        // Load the actual skWidget.h from the project
+        editor->loadFile("C:\\Users\\BAINARI 8136\\skia-dev\\ui\\skWidget.h");
+        window->addWidget(editor); filesW.push_back(editor);
 
-        treeView->setOnSelect([window](const std::string& label) {
-            window->showToast("Selected: " + label);
+        // File picker to choose which file to view
+        auto openFileBtn = std::make_shared<skButton>(kTabX, kContentY+408, 110, 26, "Browse files");
+        openFileBtn->setOnClick([fileDlg, editor, topRow, hwnd](){
+            fileDlg->show("C:\\Users\\BAINARI 8136\\skia-dev");
+            fileDlg->setOnConfirm([editor, topRow, hwnd](const std::string& path){
+                editor->loadFile(path);
+                // update breadcrumb last crumb
+                InvalidateRect(hwnd, nullptr, FALSE);
+            });
+            InvalidateRect(hwnd, nullptr, FALSE);
         });
-        window->addWidget(treeView);
-        filesW.push_back(treeView);
+        window->addWidget(openFileBtn); filesW.push_back(openFileBtn);
+
+        auto fileLbl = std::make_shared<skLabel>(kTabX+118, kContentY+412, kTabW-118, 18,
+            "C++/CMake syntax highlighting, mouse-wheel scroll", 10.f);
+        window->addWidget(fileLbl); filesW.push_back(fileLbl);
     }
 
     // ---- Notes tab ----
     std::vector<std::shared_ptr<skWidget>> notesW;
     {
-        auto notesLbl  = std::make_shared<skLabel>(kTabX, kContentY, kTabW, 18, "Notes", 12.f);
-        auto textArea  = std::make_shared<skTextArea>(kTabX, kContentY+22, kTabW, 120, "Type your notes here...");
-        auto conLbl    = std::make_shared<skLabel>(kTabX, kContentY+150, kTabW, 18, "Event log", 12.f);
-        auto console   = std::make_shared<skConsoleView>(kTabX, kContentY+170, kTabW, 180);
+        auto notesLbl = std::make_shared<skLabel>(kTabX, kContentY,      kTabW, 18, "Notes",      12.f);
+        auto textArea = std::make_shared<skTextArea>(kTabX, kContentY+22, kTabW, 116, "Type here...");
+        auto conLbl   = std::make_shared<skLabel>(kTabX, kContentY+146,  kTabW, 18, "Event log",  12.f);
+        auto console  = std::make_shared<skConsoleView>(kTabX, kContentY+166, kTabW, 182);
 
         console->info("skWidgets started");
         console->success("Skia surface created (CPU raster)");
         console->info("WM_CREATE — window handle acquired");
-        console->info("Timer started: 100ms tick interval");
+        console->info("Timer started: 100 ms tick interval");
         console->warn("logo.png not found — using placeholder");
-        console->info("Layout pass complete: 7 tabs, 80+ widgets");
+        console->info("Layout pass: 7 tabs, 90+ widgets");
+        console->success("Batch 13: skFlexSizer, skCanvasView, skCodeEditor, skFileDialog");
 
-        auto clearConBtn = std::make_shared<skButton>(kTabX, kContentY+356, 80, 26, "Clear log");
-        clearConBtn->setOnClick([console, hwnd](){
-            console->clear(); InvalidateRect(hwnd, nullptr, FALSE);
-        });
+        auto clearBtn = std::make_shared<skButton>(kTabX, kContentY+356, 80, 26, "Clear log");
+        clearBtn->setOnClick([console, hwnd](){ console->clear(); InvalidateRect(hwnd,nullptr,FALSE); });
 
         window->addWidget(notesLbl);  notesW.push_back(notesLbl);
         window->addWidget(textArea);  notesW.push_back(textArea);
         window->addWidget(conLbl);    notesW.push_back(conLbl);
         window->addWidget(console);   notesW.push_back(console);
-        window->addWidget(clearConBtn); notesW.push_back(clearConBtn);
+        window->addWidget(clearBtn);  notesW.push_back(clearBtn);
     }
 
     // ---- About tab ----
@@ -357,7 +363,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
         }
         window->addWidget(exp1); aboutW.push_back(exp1);
 
-        auto exp2 = std::make_shared<skExpander>(kTabX, kContentY+164+10, kTabW, 264, 36, "Widget catalog (48 implemented)");
+        auto exp2 = std::make_shared<skExpander>(kTabX, kContentY+164+10, kTabW, 284, 36, "Widget catalog (49 implemented)");
         exp2->setExpanded(false);
         {
             const char* items[] = {
@@ -372,7 +378,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
                 "MenuBar, Menu, ToolBar, SideBar",
                 "Drawer, NavigationRail, ColorDialog",
                 "DatePicker, ChartView, ConsoleView",
-                "Breadcrumb, GridSizer, StatusBar"
+                "Breadcrumb, GridSizer, FlexSizer, StatusBar",
+                "CanvasView, CodeEditor, FileDialog"
             };
             int cy = 8;
             for (auto* txt : items) { exp2->addChild(std::make_shared<skLabel>(12,cy,kTabW-24,16,txt,11.f)); cy+=20; }
@@ -383,247 +390,271 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // ---- Gallery tab ----
     std::vector<std::shared_ptr<skWidget>> galleryW;
     {
-        // Breadcrumb
         auto bc = std::make_shared<skBreadcrumb>(kTabX, kContentY, kTabW, 24);
         bc->addCrumb("Home"); bc->addCrumb("Gallery"); bc->addCrumb("Controls");
-        bc->setOnClick([window](int, const std::string& lbl) { window->showToast("Navigate: " + lbl); });
+        bc->setOnClick([window](int, const std::string& lbl){ window->showToast("Navigate: "+lbl); });
         window->addWidget(bc); galleryW.push_back(bc);
 
-        // Row: chips
-        auto chipLbl = std::make_shared<skLabel>(kTabX, kContentY+30, 40, 16, "Chips", 11.f);
+        // Row: chips + avatars (compact)
+        auto chipLbl = std::make_shared<skLabel>(kTabX, kContentY+32, 40, 16, "Chips", 11.f);
         window->addWidget(chipLbl); galleryW.push_back(chipLbl);
-        auto gc1 = std::make_shared<skChip>(kTabX+50, kContentY+28, "Design"); gc1->setOnClick([window](){ window->showToast("Design"); });
-        auto gc2 = std::make_shared<skChip>(0,         kContentY+28, "C++");    gc2->setOnClick([window](){ window->showToast("C++"); });
-        auto gc3 = std::make_shared<skChip>(0,         kContentY+28, "Skia");   gc3->setOnClick([window](){ window->showToast("Skia"); });
-        auto gc4 = std::make_shared<skChip>(0,         kContentY+28, "Win32");  gc4->setOnClick([window](){ window->showToast("Win32"); });
-        gc2->x = gc1->x + gc1->w + 8;
-        gc3->x = gc2->x + gc2->w + 8;
-        gc4->x = gc3->x + gc3->w + 8;
-        for (auto& c : {gc1,gc2,gc3,gc4}) { window->addWidget(c); galleryW.push_back(c); }
+        auto gc1=std::make_shared<skChip>(kTabX+50,kContentY+30,"Design"); gc1->setOnClick([window](){ window->showToast("Design"); });
+        auto gc2=std::make_shared<skChip>(0,        kContentY+30,"C++");    gc2->setOnClick([window](){ window->showToast("C++"); });
+        auto gc3=std::make_shared<skChip>(0,        kContentY+30,"Skia");   gc3->setOnClick([window](){ window->showToast("Skia"); });
+        gc2->x=gc1->x+gc1->w+8; gc3->x=gc2->x+gc2->w+8;
+        for (auto& c:{gc1,gc2,gc3}) { window->addWidget(c); galleryW.push_back(c); }
 
-        // Row: avatars + toolbar
-        auto avLbl = std::make_shared<skLabel>(kTabX, kContentY+56, 50, 16, "Avatars", 11.f);
+        auto avLbl=std::make_shared<skLabel>(kTabX+260,kContentY+32,50,16,"Avatars",11.f);
         window->addWidget(avLbl); galleryW.push_back(avLbl);
-        auto gav1=std::make_shared<skAvatar>(kTabX+56, kContentY+52, 14); gav1->setInitials("JD");
-        auto gav2=std::make_shared<skAvatar>(kTabX+86, kContentY+52, 14); gav2->setInitials("SK");
-        auto gav3=std::make_shared<skAvatar>(kTabX+116, kContentY+52, 14); gav3->setInitials("AB");
-        window->addWidget(gav1); galleryW.push_back(gav1);
-        window->addWidget(gav2); galleryW.push_back(gav2);
-        window->addWidget(gav3); galleryW.push_back(gav3);
+        auto gav1=std::make_shared<skAvatar>(kTabX+318,kContentY+28,14); gav1->setInitials("JD");
+        auto gav2=std::make_shared<skAvatar>(kTabX+348,kContentY+28,14); gav2->setInitials("SK");
+        auto gav3=std::make_shared<skAvatar>(kTabX+378,kContentY+28,14); gav3->setInitials("AB");
+        for (auto& a:{gav1,gav2,gav3}) { window->addWidget(a); galleryW.push_back(a); }
 
-        auto toolBar = std::make_shared<skToolBar>(kTabX+150, kContentY+50, kTabW-150, 26);
+        // ToolBar
+        auto toolBar = std::make_shared<skToolBar>(kTabX, kContentY+56, kTabW, 26);
         toolBar->addItem("New",  [window](){ window->showToast("New");  });
         toolBar->addItem("Open", [window](){ window->showToast("Open"); });
         toolBar->addItem("Save", [window](){ window->showToast("Save"); });
         toolBar->addSeparator();
         toolBar->addItem("Cut",  [window](){ window->showToast("Cut");  });
+        toolBar->addItem("Copy", [window](){ window->showToast("Copy"); });
         window->addWidget(toolBar); galleryW.push_back(toolBar);
 
         // Navigation Rail
-        auto navLbl = std::make_shared<skLabel>(kTabX, kContentY+84, 80, 16, "Navigation Rail", 11.f);
+        auto navLbl = std::make_shared<skLabel>(kTabX, kContentY+90, 80, 16, "Nav Rail", 11.f);
         window->addWidget(navLbl); galleryW.push_back(navLbl);
-
-        auto navRail = std::make_shared<skNavigationRail>(kTabX, kContentY+102, 68, 192);
-        navRail->addItem("\xe2\x8f\xb0", "Home");
-        navRail->addItem("\xe2\x98\x86", "Fav");
-        navRail->addItem("\xe2\x9a\x99", "Config");
-        auto navContent = std::make_shared<skLabel>(
-            kTabX+76, kContentY+130, kTabW-76-20, 60, "Home", 13.f);
-        navRail->setOnChange([navContent, hwnd](int, const std::string& lbl){
-            navContent->setText(lbl);
-            InvalidateRect(hwnd, nullptr, FALSE);
-        });
+        auto navRail = std::make_shared<skNavigationRail>(kTabX, kContentY+108, 68, 128);
+        navRail->addItem("\xe2\x8f\xb0","Home");
+        navRail->addItem("\xe2\x98\x86","Fav");
+        auto navContent = std::make_shared<skLabel>(kTabX+76,kContentY+128,kTabW-76-20,40,"Home",13.f);
+        navRail->setOnChange([navContent,hwnd](int,const std::string& lbl){ navContent->setText(lbl); InvalidateRect(hwnd,nullptr,FALSE); });
         window->addWidget(navRail);    galleryW.push_back(navRail);
         window->addWidget(navContent); galleryW.push_back(navContent);
 
         // Popover
-        auto popover = std::make_shared<skPopover>(220, 90);
+        auto popover = std::make_shared<skPopover>(220,90);
         popover->setTitle("Popover");
         popover->addLine("Floating overlay widget");
         popover->addLine("Click outside to close");
-        popover->addLine("Or press Escape");
         window->addOverlay(popover);
 
-        // Overlay buttons row
-        auto overlayLbl = std::make_shared<skLabel>(kTabX, kContentY+302, kTabW, 16, "Overlays", 11.f);
+        // Overlay buttons (row 1)
+        auto overlayLbl = std::make_shared<skLabel>(kTabX, kContentY+244, kTabW, 16, "Overlays", 11.f);
         window->addWidget(overlayLbl); galleryW.push_back(overlayLbl);
 
-        auto showMsgBtn = std::make_shared<skButton>(kTabX, kContentY+320, 106, 32, "MessageBox");
-        showMsgBtn->setOnClick([msgBox, hwnd](){
-            msgBox->show("Alert", "This is an skMessageBox.\nWarning type with icon.", skMessageType::Warning);
-            InvalidateRect(hwnd, nullptr, FALSE);
+        auto showMsgBtn = std::make_shared<skButton>(kTabX,     kContentY+262, 100, 30, "MessageBox");
+        auto showPopBtn = std::make_shared<skButton>(kTabX+108, kContentY+262, 80,  30, "Popover");
+        showMsgBtn->setOnClick([msgBox,hwnd](){
+            msgBox->show("Alert","This is an skMessageBox.\nWarning type with icon.",skMessageType::Warning);
+            InvalidateRect(hwnd,nullptr,FALSE);
+        });
+        showPopBtn->setOnClick([popover,showPopBtn,hwnd](){
+            popover->openAt(showPopBtn->x+showPopBtn->w/2, showPopBtn->y);
+            InvalidateRect(hwnd,nullptr,FALSE);
         });
         window->addWidget(showMsgBtn); galleryW.push_back(showMsgBtn);
-
-        auto showPopBtn = std::make_shared<skButton>(kTabX+114, kContentY+320, 92, 32, "Popover");
-        showPopBtn->setOnClick([popover, showPopBtn, hwnd](){
-            popover->openAt(showPopBtn->x + showPopBtn->w/2, showPopBtn->y);
-            InvalidateRect(hwnd, nullptr, FALSE);
-        });
         window->addWidget(showPopBtn); galleryW.push_back(showPopBtn);
 
-        // Color picker
-        auto colorSwatch = std::make_shared<skLabel>(kTabX+316, kContentY+320, 60, 32, "", 11.f);
-        auto pickColorBtn = std::make_shared<skButton>(kTabX+214, kContentY+320, 96, 32, "Pick Color");
-        pickColorBtn->setOnClick([colorDlg, colorSwatch, hwnd](){
+        // Color + Date row
+        auto colorSwatch  = std::make_shared<skLabel>(kTabX+308,kContentY+262,70,30,"",11.f);
+        auto pickColorBtn = std::make_shared<skButton>(kTabX+204,kContentY+262,96,30,"Pick Color");
+        pickColorBtn->setOnClick([colorDlg,colorSwatch,hwnd](){
             colorDlg->show(SkColorSetRGB(55,120,220));
-            colorDlg->setOnConfirm([colorSwatch, hwnd](SkColor c){
+            colorDlg->setOnConfirm([colorSwatch,hwnd](SkColor c){
                 char hex[8]; snprintf(hex,sizeof(hex),"#%02X%02X%02X",
-                    SkColorGetR(c), SkColorGetG(c), SkColorGetB(c));
-                colorSwatch->setText(hex);
-                InvalidateRect(hwnd, nullptr, FALSE);
+                    SkColorGetR(c),SkColorGetG(c),SkColorGetB(c));
+                colorSwatch->setText(hex); InvalidateRect(hwnd,nullptr,FALSE);
             });
-            InvalidateRect(hwnd, nullptr, FALSE);
+            InvalidateRect(hwnd,nullptr,FALSE);
         });
         window->addWidget(pickColorBtn); galleryW.push_back(pickColorBtn);
         window->addWidget(colorSwatch);  galleryW.push_back(colorSwatch);
 
-        // Date picker
-        auto dateLabel  = std::make_shared<skLabel>(kTabX, kContentY+362, 90, 16, "Date Picker", 11.f);
-        auto dateResult = std::make_shared<skLabel>(kTabX+210, kContentY+360, kTabW-210, 32, "No date selected", 11.f);
-        auto pickDateBtn = std::make_shared<skButton>(kTabX+96, kContentY+358, 106, 32, "Pick Date");
-        pickDateBtn->setOnClick([datePicker, dateResult, hwnd](){
+        // Overlay buttons (row 2)
+        auto dateResult  = std::make_shared<skLabel>(kTabX+210,kContentY+300,kTabW-210,30,"No date selected",11.f);
+        auto pickDateBtn = std::make_shared<skButton>(kTabX,    kContentY+300,96,30,"Pick Date");
+        auto browseBtn   = std::make_shared<skButton>(kTabX+104,kContentY+300,96,30,"Browse files");
+        auto fileResult  = std::make_shared<skLabel>(kTabX,kContentY+338,kTabW,16,"",10.f);
+
+        pickDateBtn->setOnClick([datePicker,dateResult,hwnd](){
             datePicker->show({});
-            datePicker->setOnConfirm([dateResult, hwnd](skDate d){
-                char buf[32]; snprintf(buf,sizeof(buf),"%04d-%02d-%02d", d.year, d.month, d.day);
-                dateResult->setText(buf);
-                InvalidateRect(hwnd, nullptr, FALSE);
+            datePicker->setOnConfirm([dateResult,hwnd](skDate d){
+                char buf[32]; snprintf(buf,sizeof(buf),"%04d-%02d-%02d",d.year,d.month,d.day);
+                dateResult->setText(buf); InvalidateRect(hwnd,nullptr,FALSE);
             });
-            InvalidateRect(hwnd, nullptr, FALSE);
+            InvalidateRect(hwnd,nullptr,FALSE);
         });
-        window->addWidget(dateLabel);  galleryW.push_back(dateLabel);
+        browseBtn->setOnClick([fileDlg,fileResult,hwnd](){
+            fileDlg->show("C:\\Users\\BAINARI 8136\\skia-dev");
+            fileDlg->setOnConfirm([fileResult,hwnd](const std::string& p){
+                std::string short_p = p.size()>50 ? "..."+p.substr(p.size()-48) : p;
+                fileResult->setText(short_p); InvalidateRect(hwnd,nullptr,FALSE);
+            });
+            InvalidateRect(hwnd,nullptr,FALSE);
+        });
+
         window->addWidget(pickDateBtn); galleryW.push_back(pickDateBtn);
-        window->addWidget(dateResult); galleryW.push_back(dateResult);
+        window->addWidget(browseBtn);   galleryW.push_back(browseBtn);
+        window->addWidget(dateResult);  galleryW.push_back(dateResult);
+        window->addWidget(fileResult);  galleryW.push_back(fileResult);
     }
 
-    // ---- Data tab — SplitView: TableView + PropertyGrid ----
+    // ---- Data tab ----
     std::vector<std::shared_ptr<skWidget>> dataW;
     {
-        auto split = std::make_shared<skSplitView>(kTabX, kContentY, kTabW, 290, 0.55f);
-
-        auto table = std::make_shared<skTableView>(0, 0, 0, 0);
-        table->addColumn("Name",   0.32f);
-        table->addColumn("Role",   0.35f);
-        table->addColumn("Team",   0.33f);
-
+        auto split = std::make_shared<skSplitView>(kTabX, kContentY, kTabW, 280, 0.55f);
+        auto table = std::make_shared<skTableView>(0,0,0,0);
+        table->addColumn("Name", 0.32f); table->addColumn("Role",0.35f); table->addColumn("Team",0.33f);
         const char* emp[][3] = {
-            {"Alice Kim",   "Lead Engineer",   "Platform"},
-            {"Bob Zhao",    "Designer",        "UI/UX"},
-            {"Carol Osei",  "Product Manager", "Core"},
-            {"Dan Rivera",  "Engineer",        "Rendering"},
-            {"Eve Martins", "QA Engineer",     "Testing"},
-            {"Frank Liu",   "DevOps",          "Infra"},
-            {"Grace Patel", "Engineer",        "Platform"},
-            {"Hank Torres", "Designer",        "UI/UX"},
-            {"Iris Nguyen", "Intern",          "Core"},
-            {"Jay Kim",     "Engineer",        "Rendering"},
+            {"Alice Kim","Lead Engineer","Platform"},{"Bob Zhao","Designer","UI/UX"},
+            {"Carol Osei","Product Manager","Core"},{"Dan Rivera","Engineer","Rendering"},
+            {"Eve Martins","QA Engineer","Testing"},{"Frank Liu","DevOps","Infra"},
+            {"Grace Patel","Engineer","Platform"},{"Hank Torres","Designer","UI/UX"},
+            {"Iris Nguyen","Intern","Core"},{"Jay Kim","Engineer","Rendering"},
         };
-        for (auto& row : emp) table->addRow({row[0], row[1], row[2]});
+        for (auto& r : emp) table->addRow({r[0],r[1],r[2]});
 
-        auto propGrid = std::make_shared<skPropertyGrid>(0, 0, 0, 0);
-        propGrid->addProperty("Name",   "-", false);
-        propGrid->addProperty("Role",   "-", false);
-        propGrid->addProperty("Team",   "-", false);
-        propGrid->addProperty("Status", "Active", true);
-        propGrid->addProperty("Notes",  "",        true);
-
-        table->setOnSelect([propGrid, hwnd](int, const std::vector<std::string>& cells){
-            if (cells.size() >= 3) {
-                propGrid->setProperty(0, cells[0]);
-                propGrid->setProperty(1, cells[1]);
-                propGrid->setProperty(2, cells[2]);
-                InvalidateRect(hwnd, nullptr, FALSE);
-            }
+        auto propGrid = std::make_shared<skPropertyGrid>(0,0,0,0);
+        propGrid->addProperty("Name",  "-",false); propGrid->addProperty("Role",  "-",false);
+        propGrid->addProperty("Team",  "-",false); propGrid->addProperty("Status","Active",true);
+        propGrid->addProperty("Notes", "",  true);
+        table->setOnSelect([propGrid,hwnd](int,const std::vector<std::string>& c){
+            if (c.size()>=3){ propGrid->setProperty(0,c[0]); propGrid->setProperty(1,c[1]); propGrid->setProperty(2,c[2]); InvalidateRect(hwnd,nullptr,FALSE); }
         });
+        split->setLeft(table); split->setRight(propGrid);
+        window->addWidget(split); dataW.push_back(split);
 
-        split->setLeft(table);
-        split->setRight(propGrid);
-        window->addWidget(split);
-        dataW.push_back(split);
-
-        // Inline-editable DataGrid below
-        auto gridLbl = std::make_shared<skLabel>(kTabX, kContentY+298, kTabW, 18, "Inline-editable grid", 12.f);
+        auto gridLbl = std::make_shared<skLabel>(kTabX, kContentY+288, kTabW, 18, "Inline-editable grid", 12.f);
         window->addWidget(gridLbl); dataW.push_back(gridLbl);
 
-        auto dgrid = std::make_shared<skDataGrid>(kTabX, kContentY+318, kTabW, 180);
-        dgrid->addColumn("Task",        0.40f, true);
-        dgrid->addColumn("Owner",       0.28f, true);
-        dgrid->addColumn("Status",      0.20f, true);
-        dgrid->addColumn("ETA",         0.12f, true);
-        dgrid->addRow({"Implement skWidget",    "Alice",  "Done",   "W1"});
-        dgrid->addRow({"Skia raster surface",   "Dan",    "Done",   "W1"});
-        dgrid->addRow({"Win32 message loop",    "Alice",  "Done",   "W2"});
-        dgrid->addRow({"Theme system",          "Bob",    "Done",   "W2"});
-        dgrid->addRow({"skChartView",           "Dan",    "Done",   "W11"});
-        dgrid->addRow({"skDatePicker",          "Carol",  "Done",   "W11"});
-        dgrid->addRow({"skDataGrid editing",    "Alice",  "Active", "W12"});
-        dgrid->addRow({"skConsoleView",         "Grace",  "Active", "W12"});
-        dgrid->addRow({"GPU backend (future)",  "Jay",    "Todo",   "---"});
-        dgrid->setOnChange([window](int r, int c, const std::string& val){
-            window->showToast("Row " + std::to_string(r+1) + ", col " + std::to_string(c+1) + ": " + val);
+        auto dgrid = std::make_shared<skDataGrid>(kTabX, kContentY+308, kTabW, 186);
+        dgrid->addColumn("Task",  0.40f,true); dgrid->addColumn("Owner",0.24f,true);
+        dgrid->addColumn("Status",0.22f,true); dgrid->addColumn("ETA",  0.14f,true);
+        dgrid->addRow({"Implement skWidget",   "Alice","Done",  "W1"});
+        dgrid->addRow({"Skia raster surface",  "Dan",  "Done",  "W1"});
+        dgrid->addRow({"Theme system",         "Bob",  "Done",  "W2"});
+        dgrid->addRow({"skChartView",          "Dan",  "Done",  "W12"});
+        dgrid->addRow({"skCodeEditor",         "Alice","Done",  "W13"});
+        dgrid->addRow({"skFileDialog",         "Carol","Done",  "W13"});
+        dgrid->addRow({"skFlexSizer",          "Grace","Done",  "W13"});
+        dgrid->addRow({"skCanvasView",         "Hank", "Done",  "W13"});
+        dgrid->addRow({"GPU backend (future)", "Jay",  "Todo",  "---"});
+        dgrid->setOnChange([window](int r,int c,const std::string& v){
+            window->showToast("Grid ["+std::to_string(r+1)+","+std::to_string(c+1)+"]: "+v);
         });
         window->addWidget(dgrid); dataW.push_back(dgrid);
     }
 
-    // ---- Dev tab — ChartView + ConsoleView ----
+    // ---- Dev tab — FlexSizer side-by-side chart+console, canvas draw area ----
     std::vector<std::shared_ptr<skWidget>> devW;
     {
-        // Chart
-        auto chartLbl = std::make_shared<skLabel>(kTabX, kContentY, kTabW, 18, "Widget count by phase", 12.f);
-        window->addWidget(chartLbl); devW.push_back(chartLbl);
+        // Chart and console side by side via FlexSizer (Row)
+        auto chart   = std::make_shared<skChartView>(0,0,0,0);
+        auto devCon  = std::make_shared<skConsoleView>(0,0,0,0);
 
-        auto chart = std::make_shared<skChartView>(kTabX, kContentY+20, kTabW, 168);
-        chart->setTitle("");
-        chart->addBar("Phase 1", 5);
-        chart->addBar("Phase 2", 9);
-        chart->addBar("Phase 3", 3);
-        chart->addBar("Phase 4", 7);
-        chart->addBar("Phase 5", 4);
-        chart->addBar("Phase 6", 3);
-        chart->addBar("Phase 7", 9);
-        chart->addBar("Phase 8", 1);
-        window->addWidget(chart); devW.push_back(chart);
-
-        // Console
-        auto conLbl = std::make_shared<skLabel>(kTabX, kContentY+196, kTabW, 18, "Build log", 12.f);
-        window->addWidget(conLbl); devW.push_back(conLbl);
-
-        auto devCon = std::make_shared<skConsoleView>(kTabX, kContentY+216, kTabW, 200);
-        devCon->appendLine("cmake -B build -S .", 0xFF888888);
-        devCon->appendLine("-- Configuring done (0.9s)", 0xFF888888);
-        devCon->success("Build finished: main.exe");
-        devCon->info("Batch 12: 4 new widgets");
-        devCon->info("skChartView    OK");
-        devCon->info("skDatePicker   OK");
-        devCon->info("skConsoleView  OK");
-        devCon->info("skDataGrid     OK");
-        devCon->appendLine("Total implemented: 45 / 59", 0xFFCCCCCC);
+        skFlexSizer flexRow(skFlexSizer::Direction::Row, 8);
+        flexRow.addFlex(chart,  0.52f);
+        flexRow.addFlex(devCon, 0.48f);
+        flexRow.layout(kTabX, kContentY, kTabW, 200);
+        window->addWidget(chart);  devW.push_back(chart);
         window->addWidget(devCon); devW.push_back(devCon);
 
-        // Buttons to add lines
-        auto infoBtn    = std::make_shared<skButton>(kTabX,        kContentY+424, 86, 26, "Info");
-        auto warnBtn    = std::make_shared<skButton>(kTabX+94,     kContentY+424, 86, 26, "Warning");
-        auto errBtn     = std::make_shared<skButton>(kTabX+188,    kContentY+424, 86, 26, "Error");
-        auto clearBtn   = std::make_shared<skButton>(kTabX+282,    kContentY+424, 86, 26, "Clear");
-        infoBtn->setOnClick([devCon, hwnd](){ devCon->info("Info message appended"); InvalidateRect(hwnd,nullptr,FALSE); });
-        warnBtn->setOnClick([devCon, hwnd](){ devCon->warn("Warning: something to check"); InvalidateRect(hwnd,nullptr,FALSE); });
-        errBtn->setOnClick([devCon, hwnd](){  devCon->error("Error: operation failed"); InvalidateRect(hwnd,nullptr,FALSE); });
-        clearBtn->setOnClick([devCon, hwnd](){ devCon->clear(); InvalidateRect(hwnd,nullptr,FALSE); });
-        window->addWidget(infoBtn);  devW.push_back(infoBtn);
-        window->addWidget(warnBtn);  devW.push_back(warnBtn);
-        window->addWidget(errBtn);   devW.push_back(errBtn);
-        window->addWidget(clearBtn); devW.push_back(clearBtn);
+        chart->setTitle("Widgets per phase");
+        chart->addBar("Ph1",5); chart->addBar("Ph2",9); chart->addBar("Ph3",3);
+        chart->addBar("Ph4",7); chart->addBar("Ph5",5); chart->addBar("Ph6",4);
+        chart->addBar("Ph7",9); chart->addBar("Ph8",2);
+
+        devCon->appendLine("cmake --build build --config Release", 0xFF888888);
+        devCon->success("Build: main.exe (Batch 13)");
+        devCon->info("skFlexSizer    OK");
+        devCon->info("skCanvasView   OK");
+        devCon->info("skCodeEditor   OK");
+        devCon->info("skFileDialog   OK");
+        devCon->appendLine("Total: 49 / 59 implemented", 0xFFCCCCCC);
+
+        // Console action buttons
+        auto infoBtn  = std::make_shared<skButton>(kTabX,       kContentY+208,80,24,"Info");
+        auto warnBtn  = std::make_shared<skButton>(kTabX+88,    kContentY+208,80,24,"Warn");
+        auto errBtn   = std::make_shared<skButton>(kTabX+176,   kContentY+208,80,24,"Error");
+        auto clrBtn   = std::make_shared<skButton>(kTabX+264,   kContentY+208,80,24,"Clear");
+        infoBtn->setOnClick([devCon,hwnd](){ devCon->info("Info message appended"); InvalidateRect(hwnd,nullptr,FALSE); });
+        warnBtn->setOnClick([devCon,hwnd](){ devCon->warn("Warning: check this"); InvalidateRect(hwnd,nullptr,FALSE); });
+        errBtn->setOnClick([devCon,hwnd](){  devCon->error("Error: operation failed"); InvalidateRect(hwnd,nullptr,FALSE); });
+        clrBtn->setOnClick([devCon,hwnd](){  devCon->clear(); InvalidateRect(hwnd,nullptr,FALSE); });
+        for (auto& b:{infoBtn,warnBtn,errBtn,clrBtn}) { window->addWidget(b); devW.push_back(b); }
+
+        // Canvas draw area
+        auto canvasLbl = std::make_shared<skLabel>(kTabX,kContentY+240,200,18,"Draw canvas (drag to paint)",12.f);
+        window->addWidget(canvasLbl); devW.push_back(canvasLbl);
+
+        // Strokes stored in a shared vector so lambdas capture it safely
+        auto strokes = std::make_shared<std::vector<std::vector<SkPoint>>>();
+        auto strokeColors = std::make_shared<std::vector<SkColor>>();
+
+        auto cv = std::make_shared<skCanvasView>(kTabX, kContentY+260, kTabW, 160);
+        cv->setOnPaint([strokes, strokeColors](SkCanvas* canvas, int cw, int ch){
+            // Grid background
+            SkPaint gridP; gridP.setColor(SkColorSetARGB(30,100,100,255));
+            gridP.setStyle(SkPaint::kStroke_Style); gridP.setStrokeWidth(0.5f);
+            for (int gx = 0; gx < cw; gx += 20) canvas->drawLine((float)gx,0,(float)gx,(float)ch,gridP);
+            for (int gy = 0; gy < ch; gy += 20) canvas->drawLine(0,(float)gy,(float)cw,(float)gy,gridP);
+            // Draw strokes
+            for (int i = 0; i < (int)strokes->size(); ++i) {
+                auto& pts = (*strokes)[i];
+                if (pts.empty()) continue;
+                SkPaint sp; sp.setAntiAlias(true);
+                sp.setColor((*strokeColors)[i]);
+                sp.setStyle(SkPaint::kStroke_Style); sp.setStrokeWidth(2.5f);
+                sp.setStrokeCap(SkPaint::kRound_Cap); sp.setStrokeJoin(SkPaint::kRound_Join);
+                SkPath path; path.moveTo(pts[0]);
+                for (size_t j=1; j<pts.size(); ++j) path.lineTo(pts[j]);
+                canvas->drawPath(path, sp);
+            }
+        });
+
+        // Cycle through a few colors
+        auto penColor = std::make_shared<SkColor>(0xFF3778DC);
+        const SkColor palette[] = {0xFF3778DC, 0xFFE05050, 0xFF44A862, 0xFFE0A030, 0xFFAA44CC};
+        auto palIdx = std::make_shared<int>(0);
+
+        cv->setOnMouseDown([strokes, strokeColors, penColor](int lx, int ly){
+            strokes->push_back({ SkPoint::Make((float)lx,(float)ly) });
+            strokeColors->push_back(*penColor);
+        });
+        cv->setOnMouseMove([strokes](int lx, int ly, bool drag){
+            if (drag && !strokes->empty())
+                strokes->back().push_back(SkPoint::Make((float)lx,(float)ly));
+        });
+
+        window->addWidget(cv); devW.push_back(cv);
+
+        auto clearCvBtn = std::make_shared<skButton>(kTabX, kContentY+428, 66, 22, "Clear");
+        clearCvBtn->setOnClick([strokes, strokeColors, hwnd](){
+            strokes->clear(); strokeColors->clear(); InvalidateRect(hwnd,nullptr,FALSE);
+        });
+
+        // Color picker buttons for canvas
+        auto colorBtns = std::make_shared<std::vector<std::shared_ptr<skWidget>>>();
+        for (int ci = 0; ci < 5; ++ci) {
+            SkColor pc = palette[ci];
+            auto cb = std::make_shared<skButton>(kTabX+74+ci*48, kContentY+428, 40, 22, "  ");
+            cb->setOnClick([penColor, pc, hwnd](){ *penColor = pc; InvalidateRect(hwnd,nullptr,FALSE); });
+            window->addWidget(cb); devW.push_back(cb);
+        }
+
+        window->addWidget(clearCvBtn); devW.push_back(clearCvBtn);
     }
 
     // =========================================================================
     // Tab visibility
     // =========================================================================
-    for (auto& ww : filesW)    ww->setVisible(false);
-    for (auto& ww : notesW)    ww->setVisible(false);
-    for (auto& ww : aboutW)    ww->setVisible(false);
-    for (auto& ww : galleryW)  ww->setVisible(false);
-    for (auto& ww : dataW)     ww->setVisible(false);
-    for (auto& ww : devW)      ww->setVisible(false);
+    for (auto& ww : filesW)   ww->setVisible(false);
+    for (auto& ww : notesW)   ww->setVisible(false);
+    for (auto& ww : aboutW)   ww->setVisible(false);
+    for (auto& ww : galleryW) ww->setVisible(false);
+    for (auto& ww : dataW)    ww->setVisible(false);
+    for (auto& ww : devW)     ww->setVisible(false);
 
     tabBar->setOnChange([=](int idx, const std::string&){
         for (auto& ww : settingsW) ww->setVisible(idx==0);
@@ -640,47 +671,43 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int cmdShow) {
     // STATUS BAR
     // =========================================================================
     auto statusBar = std::make_shared<skStatusBar>(24, 672, 852, 22);
-    statusBar->setText("Ready", "skWidgets alpha  \xc2\xb7  Batch 12  \xc2\xb7  45 widgets");
+    statusBar->setText("Ready", "skWidgets alpha  \xc2\xb7  Batch 13  \xc2\xb7  49 widgets");
     window->addWidget(statusBar);
 
     nameInput->setOnChange([statusBar, hwnd](const std::string& t){
-        statusBar->setText(t.empty() ? "Ready" : "Name: " + t,
-                           "skWidgets alpha  \xc2\xb7  Batch 12");
+        statusBar->setText(t.empty() ? "Ready" : "Name: " + t, "skWidgets alpha  \xc2\xb7  Batch 13");
         InvalidateRect(hwnd, nullptr, FALSE);
     });
 
     // =========================================================================
-    // MODAL — Save confirmation
+    // MODAL
     // =========================================================================
     auto modal = std::make_shared<skModal>(0, 0, 900, 700);
     modal->setVisible(false);
     window->addOverlay(modal);
 
-    window->setOnResize([modal, statusBar, msgBox, colorDlg, datePicker, drawer, menuBar](int nw, int nh){
-        modal->w    = nw; modal->h    = nh;
-        msgBox->w   = nw; msgBox->h   = nh;
-        colorDlg->w = nw; colorDlg->h = nh;
-        datePicker->w = nw; datePicker->h = nh;
-        drawer->w   = nw; drawer->h   = nh;
-        menuBar->w  = nw;
-        statusBar->x = 24;
-        statusBar->y = nh - 26;
-        statusBar->w = nw - 48;
+    window->setOnResize([modal,statusBar,msgBox,colorDlg,datePicker,fileDlg,drawer,menuBar](int nw,int nh){
+        modal->w=nw;      modal->h=nh;
+        msgBox->w=nw;     msgBox->h=nh;
+        colorDlg->w=nw;   colorDlg->h=nh;
+        datePicker->w=nw; datePicker->h=nh;
+        fileDlg->w=nw;    fileDlg->h=nh;
+        drawer->w=nw;     drawer->h=nh;
+        menuBar->w=nw;
+        statusBar->x=24; statusBar->y=nh-26; statusBar->w=nw-48;
     });
 
-    modal->setOnConfirm([nameInput, prioInput, window, spinner](){
+    modal->setOnConfirm([nameInput,prioInput,window,spinner](){
         spinner->runFor(20);
         std::string name = nameInput->text().empty() ? "anonymous" : nameInput->text();
-        window->showToast("Saved: " + name + "  (priority " +
-                          std::to_string(prioInput->value()) + ")");
+        window->showToast("Saved: "+name+"  (priority "+std::to_string(prioInput->value())+")");
     });
 
     saveBtn->setOnClick([nameInput, window, modal](){
         std::string name = nameInput->text().empty() ? "anonymous" : nameInput->text();
-        modal->show("Confirm save", "Save changes for \"" + name + "\"?");
+        modal->show("Confirm save", "Save changes for \""+name+"\"?");
         InvalidateRect(window->hwnd(), nullptr, FALSE);
     });
-
     cancelBtn->setOnClick([hwnd](){ DestroyWindow(hwnd); });
 
     return app.run();

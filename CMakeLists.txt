@@ -71,6 +71,10 @@ set(SOURCES
     ui/skDatePicker.cpp
     ui/skConsoleView.cpp
     ui/skDataGrid.cpp
+    ui/skFlexSizer.cpp
+    ui/skCanvasView.cpp
+    ui/skCodeEditor.cpp
+    ui/skFileDialog.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})

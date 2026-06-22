@@ -40,7 +40,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 |---------|--------|-------|
 | skBoxSizer | [x] | Implemented as `skSizer` (`ui/skSizer.h/.cpp`) — Row and Column layout, gap support |
 | skGridSizer | [x] | `ui/skGridSizer.h/.cpp` — N-column grid, auto row heights, flows left-to-right top-to-bottom |
-| skFlexSizer | [ ] | Not implemented |
+| skFlexSizer | [x] | `ui/skFlexSizer.h/.cpp` — Row/Column layout with fixed-size and proportional flex items |
 | skStackPanel | [ ] | Not implemented |
 | skScrollView | [x] | Implemented as `skScrollPanel` (`ui/skScrollPanel.h/.cpp`) — vertical scroll, children in local coords, mouse wheel |
 
@@ -78,7 +78,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 |---------|--------|-------|
 | skDialog | [x] | Implemented as `skModal` (`ui/skModal.h/.cpp`) — backdrop, centered dialog, Confirm/Cancel, Escape key |
 | skMessageBox | [x] | `ui/skMessageBox.h/.cpp` — Info/Warning/Error types, icon circle, colored top bar, OK button, Escape key |
-| skFileDialog | [ ] | Not implemented |
+| skFileDialog | [x] | `ui/skFileDialog.h/.cpp` — real Win32 directory listing, navigate dirs, select files, up button, scrollbar |
 | skColorDialog | [x] | `ui/skColorDialog.h/.cpp` — HSV picker, SV square + hue bar + swatch, OK/Cancel, Escape, outside-click close |
 | skFontDialog | [ ] | Not implemented |
 | skDatePicker | [x] | `ui/skDatePicker.h/.cpp` — calendar overlay, month/year nav, day grid, today/selected highlights, OK/Cancel |
@@ -106,7 +106,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 
 | Control | Status | Notes |
 |---------|--------|-------|
-| skCodeEditor | [ ] | Not implemented |
+| skCodeEditor | [x] | `ui/skCodeEditor.h/.cpp` — read-only viewer, line numbers, C++ syntax highlighting (keywords/types/strings/comments/preprocessor), loadFile(), mouse-wheel scroll |
 | skConsoleView | [x] | `ui/skConsoleView.h/.cpp` — scrollable log output, dark bg, per-line colors, info/warn/error/success helpers, mouse wheel scroll |
 | skInspector | [ ] | Not implemented |
 | skDockPanel | [ ] | Not implemented |
@@ -119,7 +119,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | Control | Status | Notes |
 |---------|--------|-------|
 | skChartView | [x] | `ui/skChartView.h/.cpp` — bar chart, auto Y-scaling, grid lines, value labels, hover highlight, title |
-| skCanvasView | [ ] | Not implemented |
+| skCanvasView | [x] | `ui/skCanvasView.h/.cpp` — custom paint callback surface, mouse down/move/up callbacks, clip + translate to local coords |
 | skVideoView | [ ] | Not implemented |
 | skWebView | [ ] | Not implemented |
 | skMarkdownView | [ ] | Not implemented |
@@ -147,11 +147,11 @@ These were added during development and have no catalog entry.
 |-------|-------|-------------|---------|-----------------|
 | Phase 1: Core | 5 | 5 | 0 | 0 |
 | Phase 2: Input | 9 | 9 | 0 | 0 |
-| Phase 3: Layout | 5 | 3 | 0 | 2 |
+| Phase 3: Layout | 5 | 4 | 0 | 1 |
 | Phase 4: Navigation | 7 | 7 | 0 | 0 |
 | Phase 5: Data | 5 | 5 | 0 | 0 |
-| Phase 6: Dialog | 6 | 4 | 0 | 2 |
+| Phase 6: Dialog | 6 | 5 | 0 | 1 |
 | Phase 7: Modern | 11 | 9 | 1 | 1 |
-| Phase 8: Developer | 5 | 2 | 0 | 3 |
-| Future | 6 | 1 | 0 | 5 |
-| **Total** | **59** | **45** | **1** | **13** |
+| Phase 8: Developer | 5 | 3 | 0 | 2 |
+| Future | 6 | 2 | 0 | 4 |
+| **Total** | **59** | **49** | **1** | **9** |
