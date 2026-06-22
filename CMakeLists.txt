@@ -51,6 +51,15 @@ set(SOURCES
     ui/skImage.cpp
     ui/skCard.cpp
     ui/skTreeView.cpp
+    ui/skChip.cpp
+    ui/skAvatar.cpp
+    ui/skToolBar.cpp
+    ui/skBreadcrumb.cpp
+    ui/skSideBar.cpp
+    ui/skPopover.cpp
+    ui/skMenu.cpp
+    ui/skMenuBar.cpp
+    ui/skMessageBox.cpp
 )
 
 add_executable(main WIN32 ${SOURCES})

@@ -51,11 +51,11 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | Control | Status | Notes |
 |---------|--------|-------|
 | skTabView | [x] | Implemented as `skTabBar` (`ui/skTabBar.h/.cpp`) — tab switching, accent underline, onChange callback |
-| skSideBar | [ ] | Not implemented |
-| skToolBar | [ ] | Not implemented |
-| skMenuBar | [ ] | Not implemented |
+| skSideBar | [x] | `ui/skSideBar.h/.cpp` — vertical nav list, active indicator bar, hover highlight, onChange callback |
+| skToolBar | [x] | `ui/skToolBar.h/.cpp` — horizontal button strip with separators, hover highlight, click callbacks |
+| skMenuBar | [x] | `ui/skMenuBar.h/.cpp` — title buttons, hover/active tint, opens skMenu overlays; keyboard Escape closes open menu |
 | skStatusBar | [x] | `ui/skStatusBar.h/.cpp` — left + right text sections, accent stripe, resize-aware |
-| skBreadcrumb | [ ] | Not implemented |
+| skBreadcrumb | [x] | `ui/skBreadcrumb.h/.cpp` — "Home › Section › Page"; non-last crumbs are clickable underlined links |
 
 ---
 
@@ -76,7 +76,7 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | Control | Status | Notes |
 |---------|--------|-------|
 | skDialog | [x] | Implemented as `skModal` (`ui/skModal.h/.cpp`) — backdrop, centered dialog, Confirm/Cancel, Escape key |
-| skMessageBox | [ ] | Not implemented (skModal is a general-purpose modal, not a pre-built message box) |
+| skMessageBox | [x] | `ui/skMessageBox.h/.cpp` — Info/Warning/Error types, icon circle, colored top bar, OK button, Escape key |
 | skFileDialog | [ ] | Not implemented |
 | skColorDialog | [ ] | Not implemented |
 | skFontDialog | [ ] | Not implemented |
@@ -92,12 +92,12 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 | skDrawer | [ ] | Not implemented |
 | skNavigationRail | [ ] | Not implemented |
 | skToast | [x] | `ui/skToast.h/.cpp` — slide-in/hold/slide-out animation, managed by skWindow |
-| skPopover | [ ] | Not implemented |
+| skPopover | [x] | `ui/skPopover.h/.cpp` — floating panel above anchor, downward arrow, title + text lines, Escape/outside-click close |
 | skTooltip | [~] | Built into `skWindow` (hover delay + drawTooltip), not a standalone widget |
 | skProgressBar | [x] | `ui/skProgressBar.h/.cpp` — determinate; indeterminate not yet supported |
 | skCircularProgress | [x] | Implemented as `skSpinner` (`ui/skSpinner.h/.cpp`) — rotating arc, start/stop/runFor |
-| skChip | [ ] | Not implemented |
-| skAvatar | [ ] | Not implemented |
+| skChip | [x] | `ui/skChip.h/.cpp` — auto-sized pill label, accent-tinted bg, optional click callback, hover state |
+| skAvatar | [x] | `ui/skAvatar.h/.cpp` — circular avatar, auto-picks palette color from initials, white initials text |
 | skBadge | [x] | `ui/skBadge.h/.cpp` — pill shape, auto-sizes to text, custom color |
 
 ---
@@ -137,6 +137,7 @@ These were added during development and have no catalog entry.
 | skSeparator | `ui/skSeparator.h/.cpp` | Horizontal divider line |
 | skExpander | `ui/skExpander.h/.cpp` | Animated collapsible section with rotating chevron |
 | skTheme | `ui/skTheme.h/.cpp` | Light/Dark theme tokens, skGetTheme/skSetTheme, skLerpColor |
+| skMenu | `ui/skMenu.h/.cpp` | Dropdown overlay with items, separators, hover highlight; add via skWindow::addOverlay |
 
 ---
 
@@ -147,10 +148,10 @@ These were added during development and have no catalog entry.
 | Phase 1: Core | 5 | 5 | 0 | 0 |
 | Phase 2: Input | 9 | 9 | 0 | 0 |
 | Phase 3: Layout | 5 | 2 | 0 | 3 |
-| Phase 4: Navigation | 6 | 2 | 0 | 4 |
+| Phase 4: Navigation | 6 | 5 | 0 | 1 |
 | Phase 5: Data | 5 | 2 | 0 | 3 |
-| Phase 6: Dialog | 6 | 1 | 0 | 5 |
-| Phase 7: Modern | 11 | 5 | 1 | 5 |
+| Phase 6: Dialog | 6 | 2 | 0 | 4 |
+| Phase 7: Modern | 11 | 8 | 1 | 2 |
 | Phase 8: Developer | 5 | 0 | 0 | 5 |
 | Future | 6 | 0 | 0 | 6 |
-| **Total** | **58** | **26** | **1** | **31** |
+| **Total** | **58** | **33** | **1** | **24** |

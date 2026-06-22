@@ -164,13 +164,11 @@ void skWindow::blitToWindow() {
 // ---------------------------------------------------------------------------
 
 void skWindow::dispatchEvent(const skEvent& ev) {
+    // Give overlays (menus, modals, popovers) first crack at every event.
+    // handleEvent() returns true to consume; the default base just calls OnEvent().
     bool consumed = false;
-    if (ev.type == skEventType::MouseDown || ev.type == skEventType::MouseUp) {
-        for (auto& w : m_overlays) {
-            if (w->visible() && w->handleEvent(ev)) { consumed = true; break; }
-        }
-    } else {
-        for (auto& w : m_overlays) if (w->visible()) w->OnEvent(ev);
+    for (auto& w : m_overlays) {
+        if (w->visible() && w->handleEvent(ev)) { consumed = true; break; }
     }
 
     if (!consumed) {
@@ -333,11 +331,15 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
                 cycleFocus(shift);
                 return 0;
             }
-            if (m_focus) {
+            {
                 skEvent e;
                 e.type   = skEventType::KeyDown;
                 e.button = static_cast<int>(wp);
-                m_focus->OnEvent(e);
+                // Overlays (menus, modals) intercept Escape and other keys first.
+                bool consumed = false;
+                for (auto& w : m_overlays)
+                    if (w->visible() && w->handleEvent(e)) { consumed = true; break; }
+                if (!consumed && m_focus) m_focus->OnEvent(e);
                 InvalidateRect(m_hwnd, nullptr, FALSE);
             }
             return 0;

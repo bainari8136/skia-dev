@@ -1,0 +1,33 @@
+#pragma once
+#include "skWidget.h"
+#include <string>
+#include <vector>
+#include <functional>
+
+// Vertical navigation list with an active selection indicator.
+class skSideBar : public skWidget {
+public:
+    skSideBar(int cx, int cy, int cw, int ch);
+
+    void addItem(const std::string& label);
+    void setSelected(int idx);
+    int  selected() const { return m_selected; }
+
+    void setOnChange(std::function<void(int, const std::string&)> fn);
+
+    void Paint(SkCanvas* canvas) override;
+    void OnEvent(const skEvent& ev) override;
+    void onMouseLeave() override { m_hoverIdx = -1; }
+
+private:
+    std::vector<std::string> m_items;
+    int m_selected = 0;
+    int m_hoverIdx = -1;
+    std::function<void(int, const std::string&)> m_onChange;
+
+    static constexpr float kItemH = 36.f;
+    static constexpr float kPadX  = 14.f;
+    static constexpr float kBarW  =  3.f;
+
+    int itemAt(int py) const;
+};
