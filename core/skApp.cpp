@@ -1,7 +1,15 @@
 #include "core/skApp.h"
+#include <objbase.h>
 
 skApp::skApp(HINSTANCE hInstance, int cmdShow)
-    : m_hInstance(hInstance), m_cmdShow(cmdShow) {}
+    : m_hInstance(hInstance), m_cmdShow(cmdShow) {
+    m_comInitialized = SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
+}
+
+skApp::~skApp() {
+    m_window.reset();
+    if (m_comInitialized) CoUninitialize();
+}
 
 skWindow* skApp::createWindow(const char* title, int width, int height) {
     m_window = std::make_unique<skWindow>(title, width, height);

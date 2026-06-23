@@ -42,11 +42,13 @@ void skWindow::show(int cmdShow) {
 }
 
 void skWindow::addWidget(std::shared_ptr<skWidget> widget) {
+    widget->setNativeHost(m_hwnd);
     m_widgets.push_back(std::move(widget));
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
 void skWindow::addOverlay(std::shared_ptr<skWidget> widget) {
+    widget->setNativeHost(m_hwnd);
     m_overlays.push_back(std::move(widget));
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
 }
@@ -119,10 +121,14 @@ void skWindow::onPaint() {
     SkCanvas* canvas = m_ctx.getCanvas();
     if (!canvas) return;
 
-    for (auto& widget : m_widgets)
+    for (auto& widget : m_widgets) {
+        widget->syncNativeView(widget->visible());
         if (widget->visible()) widget->Paint(canvas);
-    for (auto& widget : m_overlays)
+    }
+    for (auto& widget : m_overlays) {
+        widget->syncNativeView(widget->visible());
         if (widget->visible()) widget->Paint(canvas);
+    }
 
     if (m_hoverWidget && m_hoverTicks >= 5 && !m_hoverWidget->tooltip().empty())
         drawTooltip(canvas, m_hoverWidget);
@@ -311,8 +317,20 @@ LRESULT skWindow::handleMessage(UINT msg, WPARAM wp, LPARAM lp) {
         }
 
         case WM_LBUTTONUP:
-            ReleaseCapture();
             dispatchEvent({ skEventType::MouseUp, GET_X_LPARAM(lp), GET_Y_LPARAM(lp) });
+            ReleaseCapture();
+            return 0;
+
+        case WM_CANCELMODE:
+            // Windows is cancelling the active mouse interaction. Release capture and
+            // notify widgets so no drag state can remain latched.
+            dispatchEvent({ skEventType::MouseCancel });
+            ReleaseCapture();
+            return 0;
+
+        case WM_CAPTURECHANGED:
+            // Capture can be taken by another window without a matching button-up.
+            dispatchEvent({ skEventType::MouseCancel });
             return 0;
 
         case WM_CHAR:

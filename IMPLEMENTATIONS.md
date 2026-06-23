@@ -120,10 +120,10 @@ Tracks implementation status of every control listed in `UI Controls Catalog.md`
 |---------|--------|-------|
 | skChartView | [x] | `ui/skChartView.h/.cpp` — bar chart, auto Y-scaling, grid lines, value labels, hover highlight, title |
 | skCanvasView | [x] | `ui/skCanvasView.h/.cpp` — custom paint callback surface, mouse down/move/up callbacks, clip + translate to local coords |
-| skVideoView | [x] | `ui/skVideoView.h/.cpp` — play/pause/stop controls, seek bar, time display, simulated playback via onTick(); placeholder frame area |
-| skWebView | [x] | `ui/skWebView.h/.cpp` — URL bar with back/forward/go, editable URL input, navigate() API, history stack; placeholder content area |
+| skVideoView | [x] | `ui/skVideoView.h/.cpp` — FFmpeg video/audio decoding, Skia frame rendering, play/pause/stop, draggable seek bar, real duration and end events |
+| skWebView | [x] | `ui/skWebView.h/.cpp` — WebView2 browser with URL bar, back/forward/go, editable URL input, native history, refresh, and navigate() API |
 | skMarkdownView | [x] | `ui/skMarkdownView.h/.cpp` — H1/H2/H3, paragraphs (word-wrap), bullet lists, code blocks, horizontal rules; mouse-wheel scroll |
-| skPdfView | [x] | `ui/skPdfView.h/.cpp` — page navigation (prev/next/wheel), zoom, paper simulation with placeholder lines; loadFile/goToPage API |
+| skPdfView | [x] | `ui/skPdfView.h/.cpp` — WebView2 PDF rendering, page navigation (prev/next/wheel), zoom, and loadFile/goToPage API |
 
 ---
 

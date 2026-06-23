@@ -20,6 +20,11 @@ public:
     virtual void onMouseEnter()         {}
     virtual void onMouseLeave()         {}
 
+    // Hooks for controls that host native platform content. The opaque host
+    // is an HWND on Windows.
+    virtual void setNativeHost(void* host) { (void)host; }
+    virtual void syncNativeView(bool visible) { (void)visible; }
+
     void setTooltip(std::string t)      { m_tooltip = std::move(t); }
     const std::string& tooltip() const  { return m_tooltip; }
 
