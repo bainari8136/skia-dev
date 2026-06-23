@@ -2,13 +2,14 @@
 #include "skWidget.h"
 #include <string>
 #include <functional>
+#include <memory>
 
-// Video player widget. Currently renders a placeholder frame area with
-// simulated playback state. Wire setOnFrame() to receive per-tick callbacks
-// when a real decoder is available.
+// FFmpeg-backed video player. Decoded frames are rendered by Skia and audio
+// is streamed through the Windows waveform audio device.
 class skVideoView : public skWidget {
 public:
     skVideoView(int x, int y, int w, int h);
+    ~skVideoView() override;
 
     void loadFile(const std::string& path);
     void play();
@@ -43,6 +44,10 @@ private:
 
     std::function<void(bool)> m_onStateChange;
     std::function<void()>     m_onEnd;
+
+    struct Impl;
+    std::shared_ptr<Impl> m_impl;
+
 
     static constexpr int kCtrlH   = 34; // control strip height
     static constexpr int kBtnW    = 36;

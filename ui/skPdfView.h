@@ -2,13 +2,14 @@
 #include "skWidget.h"
 #include <string>
 #include <functional>
+#include <memory>
 
-// PDF viewer placeholder. Renders a page area with navigation controls.
-// Actual PDF decoding is not implemented — the page area shows a placeholder.
-// Wire setOnPageChange() to respond to page navigation.
+// WebView2-backed PDF renderer with a Skia-drawn navigation toolbar.
+// setOnPageChange() is called after API or toolbar page navigation.
 class skPdfView : public skWidget {
 public:
     skPdfView(int x, int y, int w, int h);
+    ~skPdfView() override;
 
     void loadFile(const std::string& path);
     void goToPage(int page);          // 1-based
@@ -26,6 +27,8 @@ public:
 
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& ev) override;
+    void setNativeHost(void* host) override;
+    void syncNativeView(bool visible) override;
 
 private:
     std::string m_filepath;
@@ -37,6 +40,12 @@ private:
     bool        m_nextHov   = false;
 
     std::function<void(int)> m_onPageChange;
+
+    struct Impl;
+    std::shared_ptr<Impl> m_impl;
+
+    void ensureInitialized();
+    void navigateDocument();
 
     static constexpr int kBarH = 30;
 
