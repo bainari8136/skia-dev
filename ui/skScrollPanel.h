@@ -20,11 +20,22 @@ public:
     void OnEvent(const skEvent& event) override;
 
 private:
-    static constexpr float kSbW = 10.f;
+    static constexpr float kSbW        = 10.f;
+    static constexpr float kMinThumbH  = 20.f;
+    static constexpr int   kScrollStep = 60;
 
     std::vector<std::shared_ptr<skWidget>> m_children;
-    int m_scrollOffset = 0;
+    int  m_scrollOffset   = 0;
 
-    int contentHeight() const;
-    int maxScroll()     const;
+    // Scrollbar drag state
+    bool m_sbDragging     = false;
+    int  m_dragStartY     = 0;
+    int  m_dragStartScroll= 0;
+    float m_dragThumbH    = 0.f;
+
+    int   contentHeight() const;
+    int   maxScroll()     const;
+
+    // Computes thumb geometry into out-params. Returns false if no scrollbar needed.
+    bool thumbGeometry(int contentH, float& thumbH, float& thumbY) const;
 };

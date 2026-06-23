@@ -46,3 +46,13 @@ void skDockPanel::OnEvent(const skEvent& ev) {
     for (auto& e : m_children)
         if (e.widget->visible()) e.widget->OnEvent(ev);
 }
+
+void skDockPanel::setNativeHost(void* host) {
+    for (auto& e : m_children)
+        e.widget->setNativeHost(host);
+}
+
+void skDockPanel::syncNativeView(bool visible) {
+    for (auto& e : m_children)
+        e.widget->syncNativeView(visible && e.widget->visible());
+}

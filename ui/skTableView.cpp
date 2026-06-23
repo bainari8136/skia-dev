@@ -149,7 +149,8 @@ void skTableView::Paint(SkCanvas* canvas) {
         SkPaint sbBg; sbBg.setColor(th.trackBg);
         canvas->drawRect(SkRect::MakeXYWH(sbX,(float)y+kHeaderH,kSbW,(float)h-kHeaderH),sbBg);
         float thumbRatio = (float)vis / (float)m_rows.size();
-        float thumbH = ((float)h - kHeaderH) * thumbRatio;
+        float sbH = (float)h - kHeaderH;
+        float thumbH = std::min(sbH, std::max(20.f, sbH * thumbRatio));
         int   ms     = maxScroll();
         float thumbY = (float)y + kHeaderH + ((float)h - kHeaderH - thumbH) *
                        (ms > 0 ? (float)m_scroll / (float)ms : 0.f);
@@ -168,6 +169,46 @@ void skTableView::Paint(SkCanvas* canvas) {
 }
 
 void skTableView::OnEvent(const skEvent& ev) {
+    // End an active drag even if the row count changed and the scrollbar
+    // disappeared before mouse-up or capture cancellation arrived.
+    if ((ev.type == skEventType::MouseUp || ev.type == skEventType::MouseCancel) && m_sbDrag) {
+        m_sbDrag = false;
+        return;
+    }
+
+    // Vertical scrollbar drag (only when rows overflow visible area)
+    bool needsSb = (int)m_rows.size() > visibleRows();
+    if (needsSb) {
+        float sbX = (float)x + (float)w - kSbW;
+
+        // Drag move/up — before contains guard so drag tracks cursor outside widget
+        if (ev.type == skEventType::MouseMove && m_sbDrag) {
+            int ms = maxScroll();
+            if (m_sbDragTrack > 0.f && ms > 0) {
+                int delta     = ev.y - m_sbDragY;
+                int newScroll = m_sbDragScroll + (int)((float)delta / m_sbDragTrack * (float)ms);
+                m_scroll = std::max(0, std::min(ms, newScroll));
+            }
+            return;
+        }
+        // Begin drag on click inside the sb strip
+        if (ev.type == skEventType::MouseDown && contains(ev.x, ev.y) &&
+            ev.x >= (int)sbX) {
+            int ms = maxScroll();
+            if (ms > 0) {
+                int vis   = visibleRows();
+                float sbH = (float)h - kHeaderH;
+                float tH  = std::min(sbH, std::max(20.f, sbH * (float)vis / (float)m_rows.size()));
+                m_sbDrag       = true;
+                m_sbDragY      = ev.y;
+                m_sbDragScroll = m_scroll;
+                m_sbDragThumb  = tH;
+                m_sbDragTrack  = sbH - tH;
+            }
+            return;
+        }
+    }
+
     switch (ev.type) {
         case skEventType::MouseMove:
             m_hovered = contains(ev.x, ev.y) ? rowAt(ev.y) : -1;

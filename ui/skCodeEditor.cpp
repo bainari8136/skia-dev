@@ -234,7 +234,39 @@ void skCodeEditor::Paint(SkCanvas* canvas) {
 }
 
 void skCodeEditor::OnEvent(const skEvent& ev) {
+    // Drag move/up — handled before the contains guard so drag tracks cursor outside widget
+    if (ev.type == skEventType::MouseMove && m_sbDrag) {
+        int ms = maxScrollY();
+        if (m_sbDragTrack > 0.f && ms > 0) {
+            int delta  = ev.y - m_sbDragY;
+            int newScroll = m_sbDragScroll + (int)((float)delta / m_sbDragTrack * (float)ms);
+            m_scrollY  = std::max(0, std::min(ms, newScroll));
+        }
+        return;
+    }
+    if ((ev.type == skEventType::MouseUp || ev.type == skEventType::MouseCancel) && m_sbDrag) {
+        m_sbDrag = false;
+        return;
+    }
+
     if (!contains(ev.x, ev.y)) return;
+
+    // Vertical scrollbar strip: begin drag on click
+    if (ev.type == skEventType::MouseDown && ev.x >= x + w - (int)kSbW) {
+        int ms = maxScrollY();
+        if (ms > 0) {
+            int vis        = visibleLines();
+            float sbH      = (float)h - kSbH;
+            float tH       = std::max(20.f, sbH * (float)vis / (float)(vis + ms));
+            m_sbDrag       = true;
+            m_sbDragY      = ev.y;
+            m_sbDragScroll = m_scrollY;
+            m_sbDragThumb  = tH;
+            m_sbDragTrack  = sbH - tH;
+        }
+        return;
+    }
+
     if (ev.type == skEventType::MouseWheel) {
         int ms = maxScrollY();
         if (ev.button > 0) m_scrollY = std::max(0,  m_scrollY - 3);

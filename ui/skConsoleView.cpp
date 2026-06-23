@@ -79,7 +79,40 @@ void skConsoleView::Paint(SkCanvas* canvas) {
 }
 
 void skConsoleView::OnEvent(const skEvent& ev) {
+    // Drag move/up — handled before the contains guard so drag tracks cursor outside widget
+    if (ev.type == skEventType::MouseMove && m_sbDrag) {
+        int ms = maxScroll();
+        if (m_sbDragTrack > 0.f && ms > 0) {
+            int delta = ev.y - m_sbDragY;
+            // Inverted convention: drag DOWN → scroll toward bottom → m_scrollOff decreases
+            int newOff  = m_sbDragOff - (int)((float)delta / m_sbDragTrack * (float)ms);
+            m_scrollOff = std::max(0, std::min(ms, newOff));
+        }
+        return;
+    }
+    if ((ev.type == skEventType::MouseUp || ev.type == skEventType::MouseCancel) && m_sbDrag) {
+        m_sbDrag = false;
+        return;
+    }
+
     if (!contains(ev.x, ev.y)) return;
+
+    // Scrollbar strip: begin drag on click
+    if (ev.type == skEventType::MouseDown && ev.x >= x + w - (int)kSbW) {
+        int ms = maxScroll();
+        if (ms > 0) {
+            int vis       = visibleLines();
+            float fh      = (float)h;
+            float tH      = std::max(20.f, fh * (float)vis / (float)(vis + ms));
+            m_sbDrag      = true;
+            m_sbDragY     = ev.y;
+            m_sbDragOff   = m_scrollOff;
+            m_sbDragThumb = tH;
+            m_sbDragTrack = fh - tH;
+        }
+        return;
+    }
+
     if (ev.type == skEventType::MouseWheel) {
         int ms = maxScroll();
         if (ev.button > 0) m_scrollOff = std::min(ms, m_scrollOff + 2);

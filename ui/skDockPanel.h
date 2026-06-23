@@ -20,6 +20,8 @@ public:
 
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& ev) override;
+    void setNativeHost(void* host) override;
+    void syncNativeView(bool visible) override;
 
 private:
     struct Entry {

@@ -34,6 +34,13 @@ private:
     int  m_scroll   = 0;
     bool m_focused  = false;
 
+    // Vertical scrollbar drag state
+    bool  m_sbDrag       = false;
+    int   m_sbDragY      = 0;
+    int   m_sbDragScroll = 0;
+    float m_sbDragThumb  = 0.f;
+    float m_sbDragTrack  = 0.f;
+
     std::function<void(int, const std::vector<std::string>&)> m_onSelect;
 
     static constexpr float kHeaderH = 30.f;

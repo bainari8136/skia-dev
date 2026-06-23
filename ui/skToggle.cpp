@@ -11,8 +11,9 @@ skToggle::skToggle(int tx, int ty, int tw, int th, std::string label)
 
 void skToggle::onTick() {
     float target = m_checked ? 1.f : 0.f;
-    if (m_thumbAnim < target) m_thumbAnim = std::min(1.f, m_thumbAnim + 0.15f);
-    else                      m_thumbAnim = std::max(0.f, m_thumbAnim - 0.15f);
+    if (m_thumbAnim == target) return; // already settled — nothing to do
+    if (m_thumbAnim < target) m_thumbAnim = std::min(1.f, m_thumbAnim + 0.4f);
+    else                      m_thumbAnim = std::max(0.f, m_thumbAnim - 0.4f);
 }
 
 void skToggle::Paint(SkCanvas* canvas) {
@@ -48,6 +49,12 @@ void skToggle::Paint(SkCanvas* canvas) {
     float onCx  = (float)x + (float)kPillW - 3.f - thumbR;
     float thumbCx = offCx + (onCx - offCx) * m_thumbAnim;
     float thumbCy = pillY + (float)kPillH / 2.f;
+
+    // Drop shadow so the white thumb is visible on light backgrounds
+    SkPaint shadow;
+    shadow.setAntiAlias(true);
+    shadow.setColor(SkColorSetARGB(60, 0, 0, 0));
+    canvas->drawCircle(thumbCx + 0.5f, thumbCy + 1.f, thumbR, shadow);
 
     SkPaint thumb;
     thumb.setAntiAlias(true);

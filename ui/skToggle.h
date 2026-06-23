@@ -15,6 +15,7 @@ public:
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& event) override;
     void onTick()                      override;
+    void onMouseLeave()                override { m_hovered = false; }
 
 private:
     static constexpr int kPillW = 44;

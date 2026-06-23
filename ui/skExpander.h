@@ -18,7 +18,8 @@ public:
 
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& ev) override;
-    void onTick() override;
+    void onTick()                  override;
+    void onMouseLeave()            override { m_hovered = false; }
 
 private:
     std::string m_title;

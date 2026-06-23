@@ -27,6 +27,13 @@ private:
     std::vector<Line> m_lines;
     int m_scrollOff = 0;  // lines scrolled up from the bottom; 0 = at bottom
 
+    // Scrollbar drag state
+    bool  m_sbDrag      = false;
+    int   m_sbDragY     = 0;
+    int   m_sbDragOff   = 0;
+    float m_sbDragThumb = 0.f;
+    float m_sbDragTrack = 0.f;
+
     static constexpr float kLineH  = 16.f;
     static constexpr float kFontSz = 10.5f;
     static constexpr float kSbW    =  8.f;

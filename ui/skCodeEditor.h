@@ -21,6 +21,13 @@ private:
     int m_scrollY = 0;  // first visible line
     int m_scrollX = 0;  // horizontal pixel offset
 
+    // Vertical scrollbar drag state
+    bool  m_sbDrag       = false;
+    int   m_sbDragY      = 0;
+    int   m_sbDragScroll = 0;
+    float m_sbDragThumb  = 0.f;
+    float m_sbDragTrack  = 0.f;
+
     static constexpr float kLineH   = 16.f;
     static constexpr float kFontSz  = 10.5f;
     static constexpr float kGutterW = 36.f;
