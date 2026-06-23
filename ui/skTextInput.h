@@ -2,10 +2,14 @@
 #include "skWidget.h"
 #include <string>
 #include <functional>
+#include <memory>
 
 class skTextInput : public skWidget {
 public:
     skTextInput(int x, int y, int w, int h, std::string placeholder = "");
+
+    static std::shared_ptr<skTextInput> make(int x, int y, int w, int h,
+                                              std::string placeholder = "");
 
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& event) override;
@@ -20,7 +24,17 @@ public:
     void setOnChange(std::function<void(const std::string&)> cb) { m_onChange = std::move(cb); }
     void setMasked(bool m)         { m_masked = m; }
 
+    std::shared_ptr<skTextInput> withText(std::string t);
+    std::shared_ptr<skTextInput> onChange(std::function<void(const std::string&)> cb);
+    std::shared_ptr<skTextInput> masked(bool m);
+    std::shared_ptr<skTextInput> pos(int px, int py);
+    std::shared_ptr<skTextInput> size(int pw, int ph);
+
 private:
+    std::shared_ptr<skTextInput> shared_this() {
+        return std::static_pointer_cast<skTextInput>(shared_from_this());
+    }
+
     std::string  m_text;
     std::string  m_placeholder;
     size_t       m_cursor        = 0;

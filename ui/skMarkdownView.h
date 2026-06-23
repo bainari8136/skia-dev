@@ -11,12 +11,22 @@ class skMarkdownView : public skWidget {
 public:
     skMarkdownView(int x, int y, int w, int h);
 
+    static std::shared_ptr<skMarkdownView> make(int x, int y, int w, int h);
+
     void setContent(const std::string& md);
 
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& ev) override;
 
+    std::shared_ptr<skMarkdownView> content(const std::string& md);
+    std::shared_ptr<skMarkdownView> pos(int px, int py);
+    std::shared_ptr<skMarkdownView> size(int pw, int ph);
+
 private:
+    std::shared_ptr<skMarkdownView> shared_this() {
+        return std::static_pointer_cast<skMarkdownView>(shared_from_this());
+    }
+
     enum class BlockType { H1, H2, H3, Para, BulletItem, CodeLine, Rule };
     struct Block {
         BlockType type;

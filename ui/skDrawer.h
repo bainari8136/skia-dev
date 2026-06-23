@@ -12,6 +12,8 @@ public:
     // totalW/H = full window size (for backdrop). drawerW = slide-in panel width.
     skDrawer(int totalW, int totalH, int drawerW = 260);
 
+    static std::shared_ptr<skDrawer> make(int totalW, int totalH, int drawerW = 260);
+
     void setTitle(const std::string& title) { m_title = title; }
     void addItem(const std::string& label, std::function<void()> action = nullptr);
 
@@ -23,7 +25,13 @@ public:
     bool handleEvent(const skEvent& ev) override;
     void onTick() override;
 
+    std::shared_ptr<skDrawer> title(const std::string& t);
+
 private:
+    std::shared_ptr<skDrawer> shared_this() {
+        return std::static_pointer_cast<skDrawer>(shared_from_this());
+    }
+
     int   m_drawerW;
     float m_offset = 0.f; // 0 = closed, 1 = open
     bool  m_open   = false;

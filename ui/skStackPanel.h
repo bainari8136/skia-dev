@@ -11,6 +11,8 @@ class skStackPanel : public skWidget {
 public:
     skStackPanel(int x, int y, int w, int h = 0);
 
+    static std::shared_ptr<skStackPanel> make(int x, int y, int w, int h = 0);
+
     void addChild(std::shared_ptr<skWidget> child);
     void setGap    (int g)              { m_gap   = g;  }
     void setPadding(int px, int py)     { m_padX  = px; m_padY = py; }
@@ -24,7 +26,19 @@ public:
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& ev) override;
 
+    std::shared_ptr<skStackPanel> gap(int g);
+    std::shared_ptr<skStackPanel> padding(int px, int py);
+    std::shared_ptr<skStackPanel> horizontal(bool h);
+    std::shared_ptr<skStackPanel> bg(SkColor c, float r = 0.f);
+    std::shared_ptr<skStackPanel> border(SkColor c, float bw = 1.f);
+    std::shared_ptr<skStackPanel> pos(int px, int py);
+    std::shared_ptr<skStackPanel> size(int pw, int ph);
+
 private:
+    std::shared_ptr<skStackPanel> shared_this() {
+        return std::static_pointer_cast<skStackPanel>(shared_from_this());
+    }
+
     std::vector<std::shared_ptr<skWidget>> m_children;
     int   m_gap   = 8;
     int   m_padX  = 0;

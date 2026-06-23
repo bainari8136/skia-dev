@@ -9,6 +9,12 @@
 skToast::skToast(int tx, int ty, int tw, int th)
     : skWidget(tx, ty, tw, th) {}
 
+std::shared_ptr<skToast> skToast::make(int tx, int ty, int tw, int th) {
+    return std::make_shared<skToast>(tx, ty, tw, th);
+}
+std::shared_ptr<skToast> skToast::pos(int px, int py)  { x = px; y = py; return shared_this(); }
+std::shared_ptr<skToast> skToast::size(int pw, int ph) { w = pw; h = ph; return shared_this(); }
+
 void skToast::show(const std::string& msg, int durationTicks) {
     m_msg         = msg;
     m_countdown   = durationTicks;

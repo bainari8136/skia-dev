@@ -5,6 +5,13 @@
 #include <include/core/SkFont.h>
 #include <include/core/SkRRect.h>
 
+std::shared_ptr<skBadge> skBadge::make(int bx, int by, std::string text, float fontSize) {
+    return std::make_shared<skBadge>(bx, by, std::move(text), fontSize);
+}
+std::shared_ptr<skBadge> skBadge::text(std::string t)           { m_text = std::move(t); return shared_this(); }
+std::shared_ptr<skBadge> skBadge::color(SkColor bg, SkColor fg) { m_bg = bg; m_fg = fg; m_colorSet = true; return shared_this(); }
+std::shared_ptr<skBadge> skBadge::pos(int px, int py)           { x = px; y = py; return shared_this(); }
+
 skBadge::skBadge(int bx, int by, std::string text, float fontSize)
     : skWidget(bx, by, 0, 0), m_text(std::move(text)), m_fontSize(fontSize) {
     // Auto-size at construction time

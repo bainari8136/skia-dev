@@ -53,3 +53,9 @@ void skLink::OnEvent(const skEvent& event) {
         default: break;
     }
 }
+
+std::shared_ptr<skLink> skLink::make(int lx, int ly, std::string text, float fontSize) {
+    return std::make_shared<skLink>(lx, ly, std::move(text), fontSize);
+}
+std::shared_ptr<skLink> skLink::onClick(std::function<void()> cb) { m_onClick = std::move(cb); return shared_this(); }
+std::shared_ptr<skLink> skLink::pos(int px, int py)               { x = px; y = py; return shared_this(); }

@@ -5,6 +5,11 @@
 skSpinner::skSpinner(int sx, int sy, int size)
     : skWidget(sx, sy, size, size) {}
 
+std::shared_ptr<skSpinner> skSpinner::make(int sx, int sy, int size) {
+    return std::make_shared<skSpinner>(sx, sy, size);
+}
+std::shared_ptr<skSpinner> skSpinner::pos(int px, int py) { x = px; y = py; return shared_this(); }
+
 void skSpinner::onTick() {
     if (!m_running) return;
     m_angle = fmodf(m_angle + 36.f, 360.f);

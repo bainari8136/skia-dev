@@ -3,12 +3,15 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 
 // Dropdown overlay. Add via skWindow::addOverlay().
 // Call openAt() to position and show; handleEvent() closes on outside click or Escape.
 class skMenu : public skWidget {
 public:
     skMenu();
+
+    static std::shared_ptr<skMenu> make();
 
     void addItem(const std::string& label, std::function<void()> action, bool enabled = true);
     void addSeparator();
@@ -21,6 +24,10 @@ public:
     void onMouseLeave() override { m_hoverFlat = -1; }
 
 private:
+    std::shared_ptr<skMenu> shared_this() {
+        return std::static_pointer_cast<skMenu>(shared_from_this());
+    }
+
     struct Item {
         std::string           label;
         std::function<void()> action;

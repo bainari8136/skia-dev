@@ -19,6 +19,8 @@ class skTreeView : public skWidget {
 public:
     skTreeView(int x, int y, int w, int h);
 
+    static std::shared_ptr<skTreeView> make(int x, int y, int w, int h);
+
     skTreeNode* addRoot(const std::string& label);
     skTreeNode* addChild(skTreeNode* parent, const std::string& label);
 
@@ -32,7 +34,15 @@ public:
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& ev) override;
 
+    std::shared_ptr<skTreeView> onSelect(std::function<void(const std::string&)> cb);
+    std::shared_ptr<skTreeView> pos(int px, int py);
+    std::shared_ptr<skTreeView> size(int pw, int ph);
+
 private:
+    std::shared_ptr<skTreeView> shared_this() {
+        return std::static_pointer_cast<skTreeView>(shared_from_this());
+    }
+
     struct FlatNode { skTreeNode* node; int depth; };
 
     void buildFlat(std::vector<FlatNode>& out,

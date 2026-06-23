@@ -10,6 +10,17 @@
 skNumberInput::skNumberInput(int nx, int ny, int nw, int nh, int mn, int mx, int val)
     : skWidget(nx, ny, nw, nh), m_min(mn), m_max(mx), m_value(val) {}
 
+std::shared_ptr<skNumberInput> skNumberInput::make(int nx, int ny, int nw, int nh,
+                                                    int minVal, int maxVal, int val) {
+    return std::make_shared<skNumberInput>(nx, ny, nw, nh, minVal, maxVal, val);
+}
+std::shared_ptr<skNumberInput> skNumberInput::withValue(int v)                       { setValue(v); return shared_this(); }
+std::shared_ptr<skNumberInput> skNumberInput::range(int mn, int mx)                  { m_min = mn; m_max = mx; setValue(m_value); return shared_this(); }
+std::shared_ptr<skNumberInput> skNumberInput::step(int s)                            { m_step = s; return shared_this(); }
+std::shared_ptr<skNumberInput> skNumberInput::onChange(std::function<void(int)> cb)  { m_onChange = std::move(cb); return shared_this(); }
+std::shared_ptr<skNumberInput> skNumberInput::pos(int px, int py)                    { x = px; y = py; return shared_this(); }
+std::shared_ptr<skNumberInput> skNumberInput::size(int pw, int ph)                   { w = pw; h = ph; return shared_this(); }
+
 SkRect skNumberInput::minusRect() const {
     return SkRect::MakeXYWH((float)x, (float)y, (float)kBtnW, (float)h);
 }

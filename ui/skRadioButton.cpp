@@ -91,3 +91,12 @@ void skRadioButton::OnEvent(const skEvent& event) {
         default: break;
     }
 }
+
+std::shared_ptr<skRadioButton> skRadioButton::make(int rx, int ry, int rw, int rh,
+                                                    std::string label, skRadioGroup* group) {
+    return std::make_shared<skRadioButton>(rx, ry, rw, rh, std::move(label), group);
+}
+std::shared_ptr<skRadioButton> skRadioButton::selected(bool v)                        { m_selected = v; return shared_this(); }
+std::shared_ptr<skRadioButton> skRadioButton::onSelect(std::function<void()> cb)      { m_onSelect = std::move(cb); return shared_this(); }
+std::shared_ptr<skRadioButton> skRadioButton::pos(int px, int py)                     { x = px; y = py; return shared_this(); }
+std::shared_ptr<skRadioButton> skRadioButton::size(int pw, int ph)                    { w = pw; h = ph; return shared_this(); }

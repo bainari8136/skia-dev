@@ -8,6 +8,8 @@ class skColorDialog : public skWidget {
 public:
     skColorDialog(int winW, int winH);
 
+    static std::shared_ptr<skColorDialog> make(int winW, int winH);
+
     void show(SkColor initialColor = SK_ColorRED);
 
     void setOnConfirm(std::function<void(SkColor)> fn) { m_onConfirm = std::move(fn); }
@@ -16,7 +18,14 @@ public:
     void Paint(SkCanvas* canvas) override;
     bool handleEvent(const skEvent& ev) override;
 
+    std::shared_ptr<skColorDialog> onConfirm(std::function<void(SkColor)> fn);
+    std::shared_ptr<skColorDialog> onCancel(std::function<void()> fn);
+
 private:
+    std::shared_ptr<skColorDialog> shared_this() {
+        return std::static_pointer_cast<skColorDialog>(shared_from_this());
+    }
+
     float m_hue = 0.f;  // 0..360
     float m_sat = 1.f;  // 0..1
     float m_val = 1.f;  // 0..1

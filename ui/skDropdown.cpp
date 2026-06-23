@@ -156,3 +156,12 @@ bool skDropdown::handleEvent(const skEvent& ev) {
     }
     return false;
 }
+
+std::shared_ptr<skDropdown> skDropdown::make(int dx, int dy, int dw, int dh) {
+    return std::make_shared<skDropdown>(dx, dy, dw, dh);
+}
+std::shared_ptr<skDropdown> skDropdown::onChange(std::function<void(int, const std::string&)> cb) {
+    m_onChange = std::move(cb); return shared_this();
+}
+std::shared_ptr<skDropdown> skDropdown::pos(int px, int py)  { x = px; y = py; return shared_this(); }
+std::shared_ptr<skDropdown> skDropdown::size(int pw, int ph) { w = pw; h = ph; return shared_this(); }

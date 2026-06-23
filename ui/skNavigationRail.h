@@ -10,6 +10,8 @@ class skNavigationRail : public skWidget {
 public:
     skNavigationRail(int x, int y, int w, int h);
 
+    static std::shared_ptr<skNavigationRail> make(int x, int y, int w, int h);
+
     void addItem(const std::string& icon, const std::string& label,
                  std::function<void()> action = nullptr);
     void setSelected(int idx);
@@ -21,7 +23,16 @@ public:
     void OnEvent(const skEvent& ev) override;
     void onMouseLeave() override { m_hoverIdx = -1; }
 
+    std::shared_ptr<skNavigationRail> withSelected(int idx);
+    std::shared_ptr<skNavigationRail> onChange(std::function<void(int, const std::string&)> fn);
+    std::shared_ptr<skNavigationRail> pos(int px, int py);
+    std::shared_ptr<skNavigationRail> size(int pw, int ph);
+
 private:
+    std::shared_ptr<skNavigationRail> shared_this() {
+        return std::static_pointer_cast<skNavigationRail>(shared_from_this());
+    }
+
     struct Item {
         std::string icon;
         std::string label;

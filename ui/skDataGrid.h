@@ -11,6 +11,8 @@ class skDataGrid : public skWidget {
 public:
     skDataGrid(int x, int y, int w, int h);
 
+    static std::shared_ptr<skDataGrid> make(int x, int y, int w, int h);
+
     // relWidth: fraction of available width (0 = auto-distribute equally).
     void addColumn(const std::string& header, float relWidth = 0.f, bool editable = true);
     void addRow(std::vector<std::string> cells);
@@ -27,7 +29,15 @@ public:
     void OnEvent(const skEvent& ev) override;
     bool canFocus() const override { return true; }
 
+    std::shared_ptr<skDataGrid> onChange(std::function<void(int,int,const std::string&)> fn);
+    std::shared_ptr<skDataGrid> pos(int px, int py);
+    std::shared_ptr<skDataGrid> size(int pw, int ph);
+
 private:
+    std::shared_ptr<skDataGrid> shared_this() {
+        return std::static_pointer_cast<skDataGrid>(shared_from_this());
+    }
+
     struct Column { std::string header; float relW; bool editable; };
     struct Row    { std::vector<std::string> cells; };
 

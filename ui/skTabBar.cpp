@@ -85,3 +85,12 @@ void skTabBar::OnEvent(const skEvent& event) {
         default: break;
     }
 }
+
+std::shared_ptr<skTabBar> skTabBar::make(int tx, int ty, int tw, int th) {
+    return std::make_shared<skTabBar>(tx, ty, tw, th);
+}
+std::shared_ptr<skTabBar> skTabBar::onChange(std::function<void(int, const std::string&)> cb) {
+    m_onChange = std::move(cb); return shared_this();
+}
+std::shared_ptr<skTabBar> skTabBar::pos(int px, int py)  { x = px; y = py; return shared_this(); }
+std::shared_ptr<skTabBar> skTabBar::size(int pw, int ph) { w = pw; h = ph; return shared_this(); }

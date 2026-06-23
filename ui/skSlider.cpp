@@ -78,3 +78,11 @@ void skSlider::OnEvent(const skEvent& event) {
         default: break;
     }
 }
+
+std::shared_ptr<skSlider> skSlider::make(int sx, int sy, int sw, int sh, float min, float max) {
+    return std::make_shared<skSlider>(sx, sy, sw, sh, min, max);
+}
+std::shared_ptr<skSlider> skSlider::withValue(float v)                         { setValue(v); return shared_this(); }
+std::shared_ptr<skSlider> skSlider::onChange(std::function<void(float)> cb)    { m_onChange = std::move(cb); return shared_this(); }
+std::shared_ptr<skSlider> skSlider::pos(int px, int py)                        { x = px; y = py; return shared_this(); }
+std::shared_ptr<skSlider> skSlider::size(int pw, int ph)                       { w = pw; h = ph; return shared_this(); }

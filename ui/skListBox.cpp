@@ -10,6 +10,15 @@
 skListBox::skListBox(int lx, int ly, int lw, int lh)
     : skWidget(lx, ly, lw, lh) {}
 
+std::shared_ptr<skListBox> skListBox::make(int lx, int ly, int lw, int lh) {
+    return std::make_shared<skListBox>(lx, ly, lw, lh);
+}
+std::shared_ptr<skListBox> skListBox::onChange(std::function<void(int, const std::string&)> cb) {
+    m_onChange = std::move(cb); return shared_this();
+}
+std::shared_ptr<skListBox> skListBox::pos(int px, int py)  { x = px; y = py; return shared_this(); }
+std::shared_ptr<skListBox> skListBox::size(int pw, int ph) { w = pw; h = ph; return shared_this(); }
+
 void skListBox::addItem(std::string item)  { m_items.push_back(std::move(item)); }
 void skListBox::clearItems()               { m_items.clear(); m_selected = -1; m_hovered = -1; m_scroll = 0; }
 

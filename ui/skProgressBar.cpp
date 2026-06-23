@@ -5,6 +5,13 @@
 
 skProgressBar::skProgressBar(int px, int py, int pw, int ph) : skWidget(px, py, pw, ph) {}
 
+std::shared_ptr<skProgressBar> skProgressBar::make(int px, int py, int pw, int ph) {
+    return std::make_shared<skProgressBar>(px, py, pw, ph);
+}
+std::shared_ptr<skProgressBar> skProgressBar::withValue(float v)  { setValue(v); return shared_this(); }
+std::shared_ptr<skProgressBar> skProgressBar::pos(int px, int py) { x = px; y = py; return shared_this(); }
+std::shared_ptr<skProgressBar> skProgressBar::size(int pw, int ph){ w = pw; h = ph; return shared_this(); }
+
 void skProgressBar::Paint(SkCanvas* canvas) {
     canvas->save();
     const auto& th = skGetTheme();

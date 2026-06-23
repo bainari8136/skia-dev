@@ -86,3 +86,11 @@ void skCheckBox::OnEvent(const skEvent& event) {
         default: break;
     }
 }
+
+std::shared_ptr<skCheckBox> skCheckBox::make(int cx, int cy, int cw, int ch, std::string label) {
+    return std::make_shared<skCheckBox>(cx, cy, cw, ch, std::move(label));
+}
+std::shared_ptr<skCheckBox> skCheckBox::checked(bool v)                          { m_checked = v; return shared_this(); }
+std::shared_ptr<skCheckBox> skCheckBox::onChange(std::function<void(bool)> cb)   { m_onChange = std::move(cb); return shared_this(); }
+std::shared_ptr<skCheckBox> skCheckBox::pos(int px, int py)                      { x = px; y = py; return shared_this(); }
+std::shared_ptr<skCheckBox> skCheckBox::size(int pw, int ph)                     { w = pw; h = ph; return shared_this(); }

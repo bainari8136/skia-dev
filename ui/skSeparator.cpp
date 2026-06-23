@@ -5,6 +5,12 @@
 skSeparator::skSeparator(int sx, int sy, int sw, int sh)
     : skWidget(sx, sy, sw, sh) {}
 
+std::shared_ptr<skSeparator> skSeparator::make(int sx, int sy, int sw, int sh) {
+    return std::make_shared<skSeparator>(sx, sy, sw, sh);
+}
+std::shared_ptr<skSeparator> skSeparator::pos(int px, int py)  { x = px; y = py; return shared_this(); }
+std::shared_ptr<skSeparator> skSeparator::size(int pw, int ph) { w = pw; h = ph; return shared_this(); }
+
 void skSeparator::Paint(SkCanvas* canvas) {
     SkPaint p;
     p.setColor(skGetTheme().panelBorder);

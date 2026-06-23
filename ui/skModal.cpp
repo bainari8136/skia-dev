@@ -165,3 +165,11 @@ bool skModal::handleEvent(const skEvent& ev) {
     }
     return true; // block everything else too
 }
+
+std::shared_ptr<skModal> skModal::make(int mx, int my, int mw, int mh) {
+    return std::make_shared<skModal>(mx, my, mw, mh);
+}
+std::shared_ptr<skModal> skModal::onConfirm(std::function<void()> cb) { m_onConfirm = std::move(cb); return shared_this(); }
+std::shared_ptr<skModal> skModal::onCancel(std::function<void()> cb)  { m_onCancel  = std::move(cb); return shared_this(); }
+std::shared_ptr<skModal> skModal::pos(int px, int py)                 { x = px; y = py; return shared_this(); }
+std::shared_ptr<skModal> skModal::size(int pw, int ph)                { w = pw; h = ph; return shared_this(); }

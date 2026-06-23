@@ -10,6 +10,8 @@ class skPropertyGrid : public skWidget {
 public:
     skPropertyGrid(int x, int y, int w, int h);
 
+    static std::shared_ptr<skPropertyGrid> make(int x, int y, int w, int h);
+
     void addProperty(const std::string& key, const std::string& value, bool editable = true);
     void setProperty(int idx, const std::string& value);
     void clearProperties();
@@ -23,7 +25,16 @@ public:
     void OnEvent(const skEvent& ev) override;
     bool canFocus() const override { return true; }
 
+    std::shared_ptr<skPropertyGrid> onChange(
+        std::function<void(int, const std::string&, const std::string&)> fn);
+    std::shared_ptr<skPropertyGrid> pos(int px, int py);
+    std::shared_ptr<skPropertyGrid> size(int pw, int ph);
+
 private:
+    std::shared_ptr<skPropertyGrid> shared_this() {
+        return std::static_pointer_cast<skPropertyGrid>(shared_from_this());
+    }
+
     struct Prop { std::string key; std::string val; bool editable; };
     std::vector<Prop> m_props;
     int  m_selected = -1;

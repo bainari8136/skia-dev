@@ -3,11 +3,14 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 
 // Vertical navigation list with an active selection indicator.
 class skSideBar : public skWidget {
 public:
     skSideBar(int cx, int cy, int cw, int ch);
+
+    static std::shared_ptr<skSideBar> make(int cx, int cy, int cw, int ch);
 
     void addItem(const std::string& label);
     void setSelected(int idx);
@@ -19,7 +22,16 @@ public:
     void OnEvent(const skEvent& ev) override;
     void onMouseLeave() override { m_hoverIdx = -1; }
 
+    std::shared_ptr<skSideBar> withSelected(int idx);
+    std::shared_ptr<skSideBar> onChange(std::function<void(int, const std::string&)> fn);
+    std::shared_ptr<skSideBar> pos(int px, int py);
+    std::shared_ptr<skSideBar> size(int pw, int ph);
+
 private:
+    std::shared_ptr<skSideBar> shared_this() {
+        return std::static_pointer_cast<skSideBar>(shared_from_this());
+    }
+
     std::vector<std::string> m_items;
     int m_selected = 0;
     int m_hoverIdx = -1;

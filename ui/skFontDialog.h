@@ -17,6 +17,8 @@ class skFontDialog : public skWidget {
 public:
     skFontDialog(int winW, int winH);
 
+    static std::shared_ptr<skFontDialog> make(int winW, int winH);
+
     void show(skFontSelection initial = {});
     void setOnConfirm(std::function<void(skFontSelection)> fn) { m_onConfirm = std::move(fn); }
     void setOnCancel (std::function<void()>                fn) { m_onCancel  = std::move(fn); }
@@ -24,7 +26,14 @@ public:
     void Paint(SkCanvas* canvas) override;
     bool handleEvent(const skEvent& ev) override;
 
+    std::shared_ptr<skFontDialog> onConfirm(std::function<void(skFontSelection)> fn);
+    std::shared_ptr<skFontDialog> onCancel(std::function<void()> fn);
+
 private:
+    std::shared_ptr<skFontDialog> shared_this() {
+        return std::static_pointer_cast<skFontDialog>(shared_from_this());
+    }
+
     std::vector<std::string> m_fonts;
     skFontSelection          m_sel;
     int  m_fontScroll  = 0;

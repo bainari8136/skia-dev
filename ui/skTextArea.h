@@ -3,15 +3,25 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <memory>
 
 class skTextArea : public skWidget {
 public:
     skTextArea(int x, int y, int w, int h, std::string placeholder = "");
 
+    static std::shared_ptr<skTextArea> make(int x, int y, int w, int h,
+                                             std::string placeholder = "");
+
     std::string text() const;
     void        setText(const std::string& t);
     void        setOnChange(std::function<void(const std::string&)> cb) { m_onChange = std::move(cb); }
     void        setPlaceholder(const std::string& p) { m_placeholder = p; }
+
+    std::shared_ptr<skTextArea> withText(const std::string& t);
+    std::shared_ptr<skTextArea> onChange(std::function<void(const std::string&)> cb);
+    std::shared_ptr<skTextArea> placeholder(const std::string& p);
+    std::shared_ptr<skTextArea> pos(int px, int py);
+    std::shared_ptr<skTextArea> size(int pw, int ph);
 
     void Paint(SkCanvas* canvas) override;
     void OnEvent(const skEvent& ev) override;
@@ -22,6 +32,10 @@ public:
     void onFocusLost()          override;
 
 private:
+    std::shared_ptr<skTextArea> shared_this() {
+        return std::static_pointer_cast<skTextArea>(shared_from_this());
+    }
+
     void insertChar(char ch);
     void backspace();
     void deleteChar();
