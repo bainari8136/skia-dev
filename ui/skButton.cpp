@@ -9,6 +9,30 @@
 skButton::skButton(int bx, int by, int bw, int bh, std::string label)
     : skWidget(bx, by, bw, bh), m_label(std::move(label)) {}
 
+std::shared_ptr<skButton> skButton::make(int bx, int by, int bw, int bh, std::string label) {
+    return std::make_shared<skButton>(bx, by, bw, bh, std::move(label));
+}
+
+std::shared_ptr<skButton> skButton::label(std::string lbl) {
+    m_label = std::move(lbl);
+    return shared_this();
+}
+
+std::shared_ptr<skButton> skButton::onClick(std::function<void()> cb) {
+    m_onClick = std::move(cb);
+    return shared_this();
+}
+
+std::shared_ptr<skButton> skButton::pos(int px, int py) {
+    x = px; y = py;
+    return shared_this();
+}
+
+std::shared_ptr<skButton> skButton::size(int pw, int ph) {
+    w = pw; h = ph;
+    return shared_this();
+}
+
 void skButton::Paint(SkCanvas* canvas) {
     canvas->save();
     const auto& th = skGetTheme();

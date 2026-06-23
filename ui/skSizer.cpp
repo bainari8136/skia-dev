@@ -2,8 +2,23 @@
 
 skSizer::skSizer(skDirection dir, int gap) : m_dir(dir), m_gap(gap) {}
 
-void skSizer::add(std::shared_ptr<skWidget> widget, int fixedSize) {
+std::shared_ptr<skSizer> skSizer::make(skDirection dir, int gap) {
+    return std::make_shared<skSizer>(dir, gap);
+}
+
+std::shared_ptr<skSizer> skSizer::add(std::shared_ptr<skWidget> widget, int fixedSize) {
     m_children.push_back({ std::move(widget), fixedSize });
+    return shared_from_this();
+}
+
+std::shared_ptr<skSizer> skSizer::direction(skDirection dir) {
+    m_dir = dir;
+    return shared_from_this();
+}
+
+std::shared_ptr<skSizer> skSizer::gap(int g) {
+    m_gap = g;
+    return shared_from_this();
 }
 
 void skSizer::layout(int startX, int startY, int crossSize) {

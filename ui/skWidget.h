@@ -1,8 +1,9 @@
 #pragma once
 #include <include/core/SkCanvas.h>
 #include "skEvent.h"
+#include <memory>
 
-class skWidget {
+class skWidget : public std::enable_shared_from_this<skWidget> {
 public:
     skWidget(int x, int y, int w, int h) : x(x), y(y), w(w), h(h) {}
     virtual ~skWidget() = default;

@@ -5,7 +5,7 @@
 
 enum class skDirection { Row, Column };
 
-class skSizer {
+class skSizer : public std::enable_shared_from_this<skSizer> {
 public:
     struct Entry {
         std::shared_ptr<skWidget> widget;
@@ -14,13 +14,20 @@ public:
 
     explicit skSizer(skDirection dir = skDirection::Column, int gap = 8);
 
-    void add(std::shared_ptr<skWidget> widget, int fixedSize = 0);
+    static std::shared_ptr<skSizer> make(skDirection dir = skDirection::Column, int gap = 8);
+
+    // Returns shared_ptr<skSizer> for chaining; existing void call sites still compile.
+    std::shared_ptr<skSizer> add(std::shared_ptr<skWidget> widget, int fixedSize = 0);
 
     // Compute child positions starting at (x, y).
     // crossSize > 0 stretches children to fill the cross axis.
     void layout(int x, int y, int crossSize = 0);
 
     const std::vector<Entry>& children() const { return m_children; }
+
+    // Fluent configuration setters
+    std::shared_ptr<skSizer> direction(skDirection dir);
+    std::shared_ptr<skSizer> gap(int g);
 
 private:
     skDirection        m_dir;

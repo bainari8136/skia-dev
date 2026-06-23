@@ -4,11 +4,28 @@
 skFlexSizer::skFlexSizer(Direction dir, int gap)
     : m_dir(dir), m_gap(gap) {}
 
-void skFlexSizer::addFixed(std::shared_ptr<skWidget> w, int size) {
-    m_entries.push_back({std::move(w), size, 0.f});
+std::shared_ptr<skFlexSizer> skFlexSizer::make(Direction dir, int gap) {
+    return std::make_shared<skFlexSizer>(dir, gap);
 }
-void skFlexSizer::addFlex(std::shared_ptr<skWidget> w, float flex) {
+
+std::shared_ptr<skFlexSizer> skFlexSizer::addFixed(std::shared_ptr<skWidget> w, int size) {
+    m_entries.push_back({std::move(w), size, 0.f});
+    return shared_from_this();
+}
+
+std::shared_ptr<skFlexSizer> skFlexSizer::addFlex(std::shared_ptr<skWidget> w, float flex) {
     m_entries.push_back({std::move(w), -1, flex});
+    return shared_from_this();
+}
+
+std::shared_ptr<skFlexSizer> skFlexSizer::direction(Direction dir) {
+    m_dir = dir;
+    return shared_from_this();
+}
+
+std::shared_ptr<skFlexSizer> skFlexSizer::gap(int g) {
+    m_gap = g;
+    return shared_from_this();
 }
 
 void skFlexSizer::layout(int x, int y, int totalW, int totalH) {

@@ -8,12 +8,14 @@ public:
     skApp(HINSTANCE hInstance, int cmdShow);
     ~skApp();
 
+    static std::unique_ptr<skApp> make(HINSTANCE hInstance, int cmdShow);
+
     skWindow* createWindow(const char* title, int width, int height);
     int run();
 
 private:
-    HINSTANCE              m_hInstance;
-    int                    m_cmdShow;
+    HINSTANCE                 m_hInstance;
+    int                       m_cmdShow;
     std::unique_ptr<skWindow> m_window;
-    bool m_comInitialized = false;
+    bool                      m_comInitialized = false;
 };

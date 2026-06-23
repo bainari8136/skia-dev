@@ -17,14 +17,18 @@ public:
 
     bool create(HINSTANCE hInstance);
     void show(int cmdShow);
-    void addWidget(std::shared_ptr<skWidget> widget);
-    void addOverlay(std::shared_ptr<skWidget> widget);
+
+    // Returns skWindow* for fluent chaining; existing void call sites still compile.
+    skWindow* addWidget(std::shared_ptr<skWidget> widget);
+    skWindow* addOverlay(std::shared_ptr<skWidget> widget);
 
     // Show a slide-in / slide-out notification at the bottom of the window.
     void showToast(const std::string& msg, int durationTicks = 25);
 
-    // Register a callback fired on every WM_SIZE with the new client (w, h).
+    // Imperative setter (kept for compatibility)
     void setOnResize(std::function<void(int, int)> cb) { m_onResize = std::move(cb); }
+    // Fluent alias
+    skWindow* onResize(std::function<void(int, int)> cb) { m_onResize = std::move(cb); return this; }
 
     HWND hwnd() const { return m_hwnd; }
 

@@ -41,16 +41,18 @@ void skWindow::show(int cmdShow) {
     UpdateWindow(m_hwnd);
 }
 
-void skWindow::addWidget(std::shared_ptr<skWidget> widget) {
+skWindow* skWindow::addWidget(std::shared_ptr<skWidget> widget) {
     widget->setNativeHost(m_hwnd);
     m_widgets.push_back(std::move(widget));
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
+    return this;
 }
 
-void skWindow::addOverlay(std::shared_ptr<skWidget> widget) {
+skWindow* skWindow::addOverlay(std::shared_ptr<skWidget> widget) {
     widget->setNativeHost(m_hwnd);
     m_overlays.push_back(std::move(widget));
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
+    return this;
 }
 
 // ---------------------------------------------------------------------------

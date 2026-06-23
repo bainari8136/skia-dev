@@ -4,8 +4,28 @@
 skGridSizer::skGridSizer(int cols, int gapX, int gapY)
     : m_cols(cols), m_gapX(gapX), m_gapY(gapY) {}
 
-void skGridSizer::add(std::shared_ptr<skWidget> widget, int height) {
+std::shared_ptr<skGridSizer> skGridSizer::make(int cols, int gapX, int gapY) {
+    return std::make_shared<skGridSizer>(cols, gapX, gapY);
+}
+
+std::shared_ptr<skGridSizer> skGridSizer::add(std::shared_ptr<skWidget> widget, int height) {
     m_entries.push_back({std::move(widget), height});
+    return shared_from_this();
+}
+
+std::shared_ptr<skGridSizer> skGridSizer::cols(int c) {
+    m_cols = c;
+    return shared_from_this();
+}
+
+std::shared_ptr<skGridSizer> skGridSizer::gapX(int g) {
+    m_gapX = g;
+    return shared_from_this();
+}
+
+std::shared_ptr<skGridSizer> skGridSizer::gapY(int g) {
+    m_gapY = g;
+    return shared_from_this();
 }
 
 void skGridSizer::layout(int startX, int startY, int totalW) {

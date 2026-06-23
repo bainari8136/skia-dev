@@ -1,6 +1,10 @@
 #include "core/skApp.h"
 #include <objbase.h>
 
+std::unique_ptr<skApp> skApp::make(HINSTANCE hInstance, int cmdShow) {
+    return std::make_unique<skApp>(hInstance, cmdShow);
+}
+
 skApp::skApp(HINSTANCE hInstance, int cmdShow)
     : m_hInstance(hInstance), m_cmdShow(cmdShow) {
     m_comInitialized = SUCCEEDED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED));
